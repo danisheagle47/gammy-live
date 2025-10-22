@@ -35,7 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
         prevMonthBtn: document.getElementById('prev-month-btn'),
         nextMonthBtn: document.getElementById('next-month-btn')
     };
-    const getCoverUrl = (url, size = 'cover_big') => url ? `https:${url.replace('t_thumb', `t_${size}`)}` : 'https://placehold.co/180x240/1E1E1E/9933FF?text=N/A';
+    // Sostituisci solo questa funzione in script.js
+
+const getCoverUrl = (url, size = 'cover_big') => {
+    if (!url) {
+        return 'https://placehold.co/180x240/1E1E1E/9933FF?text=N/A';
+    }
+    // Se l'URL inizia con '//', è di IGDB, quindi aggiungiamo 'https:'
+    if (url.startsWith('//')) {
+        return `https:${url.replace('t_thumb', `t_${size}`)}`;
+    }
+    // Altrimenti, è un URL completo (da RAWG), lo usiamo così com'è.
+    return url;
+};
     const showLoading = (container) => container.innerHTML = '<div class="loading-spinner"></div>';
     const showPlaceholder = (container, message) => container.innerHTML = `<p class="placeholder-text">${message}</p>`;
     const openModal = (modal) => { dom.modalBackdrop.classList.add('active'); modal.classList.add('active'); };
