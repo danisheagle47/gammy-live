@@ -19,9 +19,12 @@
                 <p class="nav-title">IL MIO SPAZIO</p>
                 <ul>
                     <li><a href="#" class="nav-link active" data-section="libreria"><i class="fa-solid fa-gamepad fa-fw"></i> Libreria</a></li>
+                    <li><a href="#" class="nav-link" data-section="diario"><i class="fa-solid fa-book-open fa-fw"></i> Diario</a></li>
+                    <li><a href="#" class="nav-link" data-section="wishlist"><i class="fa-solid fa-star fa-fw"></i> Wishlist</a></li>
                 </ul>
                 <p class="nav-title">SCOPRI</p>
                 <ul>
+                    <li><a href="#" class="nav-link" data-section="uscite"><i class="fa-solid fa-rocket fa-fw"></i> In Uscita</a></li>
                     <li><a href="#" class="nav-link" data-section="calendario"><i class="fa-solid fa-calendar-days fa-fw"></i> Calendario</a></li>
                     <li><a href="#" class="nav-link" data-section="notizie"><i class="fa-solid fa-newspaper fa-fw"></i> Notizie</a></li>
                 </ul>
@@ -43,9 +46,27 @@
                         <button id="search-btn" class="btn-primary"><i class="fa-solid fa-search"></i></button>
                     </div>
                 </div>
-                <div id="game-grid" class="game-grid"></div>
+                <div id="library-grid" class="game-grid"></div>
+            </section>
+
+            <section id="diario" class="page">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
+                    <button id="add-journal-entry-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Nuova Voce</button>
+                </div>
+                <div id="journal-list" class="journal-list"></div>
+            </section>
+
+             <section id="wishlist" class="page">
+                <h2><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
+                <div id="wishlist-grid" class="game-grid"></div>
             </section>
             
+            <section id="uscite" class="page">
+                <h2><i class="fa-solid fa-rocket"></i> Giochi Più Attesi</h2>
+                <div id="upcoming-grid" class="game-grid"></div>
+            </section>
+
             <section id="calendario" class="page">
                  <div class="page-header">
                     <h2><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
@@ -71,6 +92,27 @@
             <span class="close-modal-btn">&times;</span>
             <h3>Risultati Ricerca</h3>
             <div id="search-results" class="game-grid"></div>
+        </div>
+    </div>
+    <div id="journal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h3>Nuova Voce del Diario</h3>
+            <form id="journal-form">
+                <div class="form-group">
+                    <label for="journal-game">Gioco:</label>
+                    <select id="journal-game" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="journal-title">Titolo sessione:</label>
+                    <input type="text" id="journal-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="journal-notes">Note:</label>
+                    <textarea id="journal-notes" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Aggiungi Voce</button>
+            </form>
         </div>
     </div>
 
