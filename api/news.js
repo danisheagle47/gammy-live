@@ -1,11 +1,10 @@
 import { makeIgdbRequest } from '../utils/igdbHelper.js';
-
 export default async function handler(request, response) {
     const body = `
         fields title, summary, image, url, published_at;
         order published_at desc;
         where image != null & summary != null;
-        limit 20;
+        limit 21;
     `;
     try {
         const data = await makeIgdbRequest('pulse_articles', body);

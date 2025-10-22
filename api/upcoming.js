@@ -1,5 +1,4 @@
 import { makeIgdbRequest } from '../utils/igdbHelper.js';
-
 export default async function handler(request, response) {
     const now = Math.floor(Date.now() / 1000);
     const body = `

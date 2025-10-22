@@ -19,6 +19,7 @@ body.dark-theme {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Poppins', sans-serif; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
 .app-container { display: flex; height: 100vh; overflow: hidden; }
+/* Sidebar */
 .sidebar { width: 260px; background-color: var(--bg-element); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px; transition: background-color 0.3s, border-color 0.3s; flex-shrink: 0; }
 .sidebar-header h1 { color: var(--accent); text-align: center; font-weight: 700; letter-spacing: 2px; }
 .sidebar-nav { margin-top: 40px; flex-grow: 1; }
@@ -36,6 +37,7 @@ body.dark-theme .sidebar-nav .nav-link:hover .fa-fw { color: var(--text-main); }
 .theme-switcher i { padding: 5px 15px; border-radius: 50px; color: var(--text-secondary); transition: all 0.3s; }
 body.dark-theme .fa-moon { background-color: var(--accent); color: white; }
 body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
+/* Contenuto Principale */
 .content { flex-grow: 1; padding: 40px; overflow-y: auto; }
 .page { display: none; animation: fadeIn 0.5s ease; }
 .page.active { display: block; }
@@ -46,19 +48,82 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 #search-input { width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-element); color: var(--text-main); font-size: 15px; }
 .btn-primary { background-color: var(--accent); color: white; border: none; padding: 0 20px; height: 42px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
 .btn-primary:hover { background-color: var(--accent-hover); }
-.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px; }
-.game-card { background-color: var(--bg-element); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; }
-.game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(153, 51, 255, 0.2); }
-.game-card img { width: 100%; height: 240px; object-fit: cover; display: block; background-color: var(--bg-main); }
-.game-card-info { padding: 15px; }
-.game-card-info h4 { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.action-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; cursor: default; }
-.game-card:hover .action-overlay { opacity: 1; }
+
+/* GRIGLIA E KINETIC CARD */
+.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; perspective: 1000px; }
+.game-card {
+    background-color: var(--bg-element);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    box-shadow: var(--shadow);
+}
+.game-card:hover {
+    transform: translateZ(20px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+.game-card-poster {
+    width: 100%;
+    height: 270px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+.game-card:hover .game-card-poster {
+    transform: translateY(-40px);
+}
+.game-card-title-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 15px 15px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    transition: opacity 0.4s ease;
+    cursor: pointer;
+}
+.game-card:hover .game-card-title-overlay {
+    opacity: 0;
+}
+.game-card-details {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: var(--bg-element);
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+    text-align: center;
+}
+.game-card:hover .game-card-details {
+    transform: translateY(0);
+}
+.game-card-details h4 {
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 10px;
+}
+.game-card-details .action-btn {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+}
 .action-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; cursor: pointer; }
-.action-btn[disabled], .action-btn[disabled]:hover { background: #555; cursor: not-allowed; }
-.remove-btn { position: absolute; top: 10px; right: 10px; background-color: rgba(199, 0, 57, 0.8); color: white; border-radius: 50%; width: 30px; height: 30px; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; z-index: 2; }
-.game-card:hover .remove-btn { opacity: 1; }
-.remove-btn:hover { background-color: rgba(199, 0, 57, 1); transform: scale(1.1); }
+.action-btn:disabled, .action-btn[disabled]:hover { background: #555; cursor: not-allowed; }
+
+/* MODALS e altre sezioni... */
+.modal { max-width: 850px; }
+.modal .game-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .journal-list { display: flex; flex-direction: column; gap: 20px; }
 .journal-entry { background-color: var(--bg-element); padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent); box-shadow: var(--shadow); }
 .journal-date { font-size: 13px; color: var(--text-secondary); margin-bottom: 5px; }
@@ -72,7 +137,6 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
 .calendar-day-name { text-align: center; padding-bottom: 10px; font-weight: 600; color: var(--text-secondary); }
 .calendar-day { background-color: var(--bg-main); border-radius: 8px; min-height: 120px; padding: 8px; }
-.calendar-day.other-month { opacity: 0.4; }
 .day-number { font-weight: 600; }
 .day-releases { margin-top: 5px; display: flex; flex-direction: column; gap: 5px; }
 .release-item { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -86,11 +150,10 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 .news-date { font-size: 12px; color: var(--text-secondary); margin-top: 15px; }
 .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 100; display: none; opacity: 0; transition: opacity 0.3s; }
 .modal-backdrop.active { display: block; opacity: 1; }
-.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); background-color: var(--bg-element); border-radius: 15px; z-index: 101; width: 90%; max-width: 800px; display: none; opacity: 0; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 80vh; display: flex; flex-direction: column; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); background-color: var(--bg-element); border-radius: 15px; z-index: 101; width: 90%; max-width: 950px; display: none; opacity: 0; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; display: flex; flex-direction: column; }
 .modal.active { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .modal-content { padding: 30px; overflow-y: auto; }
 .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--text-secondary); cursor: pointer; line-height: 1; z-index: 2; }
-#search-results .game-card { cursor: default; }
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); background-color: var(--bg-main); color: var(--text-main); border-radius: 8px; font-size: 15px; }
