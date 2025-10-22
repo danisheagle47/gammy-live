@@ -81,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // Sostituisci solo questa funzione in script.js
 
+// Sostituisci solo questa funzione in script.js (VERSIONE FINALE E FUNZIONANTE)
+
 const handleSearch = async () => {
     const query = dom.searchInput.value.trim();
     if (!query) return;
@@ -89,18 +91,32 @@ const handleSearch = async () => {
 
     try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const data = await response.json(); // Ora 'data' conterrà il nostro oggetto di debug
+        const results = await response.json(); // Ora 'results' conterrà la lista di giochi
 
         if (!response.ok) {
-            throw new Error(data.message || `Errore ${response.status}`);
+            throw new Error(results.message || `Errore ${response.status}`);
         }
 
-        // MODIFICA CRUCIALE:
-        // Mostriamo la risposta grezza in un formato leggibile
-        dom.searchResultsContainer.innerHTML = `
-            <h3>Risposta Grezza dal Server:</h3>
-            <pre style="background: #222; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(data, null, 2)}</pre>
-        `;
+        dom.searchResultsContainer.innerHTML = '';
+        if (results.length === 0) {
+            showPlaceholder(dom.searchResultsContainer, "Nessun risultato trovato.");
+            return;
+        }
+
+        // Questo codice ora funzionerà perché i dati sono corretti
+        dom.searchResultsContainer.innerHTML = results.map(game => {
+            const inLibrary = state.library.some(libGame => libGame.id === game.id);
+            return `
+                <div class="game-card">
+                    <img src="${getCoverUrl(game.cover?.url)}" alt="${game.name}">
+                    <div class="action-overlay">
+                        <button class="action-btn" data-action="add-library" data-game='${JSON.stringify(game)}' ${inLibrary ? 'disabled' : ''}>
+                            ${inLibrary ? 'In Libreria' : 'Aggiungi'}
+                        </button>
+                    </div>
+                    <div class="game-card-info"><h4>${game.name}</h4></div>
+                </div>`;
+        }).join('');
 
     } catch (error) {
         showPlaceholder(dom.searchResultsContainer, `<b>Errore di Ricerca:</b><br>${error.message}.`);

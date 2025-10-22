@@ -1,4 +1,4 @@
-// api/search.js (VERSIONE DA DEBUG)
+// api/search.js (VERSIONE FINALE E FUNZIONANTE)
 import { makeIgdbRequest } from '../utils/igdbHelper.js';
 
 export default async function handler(request, response) {
@@ -7,25 +7,18 @@ export default async function handler(request, response) {
         return response.status(400).json({ message: 'Query di ricerca mancante' });
     }
 
+    // Usiamo la query standard 'search' e chiediamo a IGDB di filtrare
+    // per giochi principali (category = 0) e che abbiano una copertina.
     const body = `
         search "${query}";
-        fields name, cover.url, category;
-        limit 50;
+        fields name, cover.url;
+        where category = 0 & cover != null;
+        limit 20;
     `;
 
     try {
-        // Chiamiamo IGDB come prima
         const data = await makeIgdbRequest('games', body);
-
-        // MODIFICA CRUCIALE:
-        // Invece di filtrare, restituiamo TUTTO quello che IGDB ci ha dato,
-        // aggiungendo un contatore per sapere quanti risultati grezzi sono arrivati.
-        response.status(200).json({
-            message: "Questa è la risposta grezza da IGDB.",
-            raw_result_count: data.length,
-            raw_data: data
-        });
-        
+        response.status(200).json(data);
     } catch (error) {
         response.status(500).json({ message: error.message });
     }
