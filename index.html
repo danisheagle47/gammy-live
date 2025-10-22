@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
 </head>
-<body class="dark-theme">
+<body>
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header"><h1>Gammy</h1></div>
@@ -29,10 +29,7 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <div class="theme-switcher" id="theme-toggle">
-                    <i class="fa-solid fa-sun"></i>
-                    <i class="fa-solid fa-moon"></i>
-                </div>
+                <!-- Toggle del tema rimosso -->
             </div>
         </aside>
         <main class="content">
@@ -44,4 +41,70 @@
                         <button id="search-btn" class="btn-primary"><i class="fa-solid fa-search"></i></button>
                     </div>
                 </div>
-                <div id="library-grid" 
+                <div id="library-grid" class="game-grid"></div>
+            </section>
+            <section id="diario" class="page">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
+                    <button id="add-journal-entry-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Nuova Voce</button>
+                </div>
+                <div id="journal-list" class="journal-list"></div>
+            </section>
+             <section id="wishlist" class="page">
+                <h2><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
+                <div id="wishlist-grid" class="game-grid"></div>
+            </section>
+            <section id="uscite" class="page">
+                <h2><i class="fa-solid fa-rocket"></i> Giochi Più Attesi</h2>
+                <div id="upcoming-grid" class="game-grid"></div>
+            </section>
+            <section id="calendario" class="page">
+                 <div class="page-header">
+                    <h2><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
+                    <div id="calendar-nav">
+                        <button id="prev-month-btn">&lt;</button>
+                        <h3 id="calendar-month-year"></h3>
+                        <button id="next-month-btn">&gt;</button>
+                    </div>
+                </div>
+                <div id="calendar-grid-container"></div>
+            </section>
+            <section id="notizie" class="page">
+                <h2><i class="fa-solid fa-newspaper"></i> Notizie dal Mondo Gaming</h2>
+                <div id="news-feed" class="news-feed"></div>
+            </section>
+        </main>
+    </div>
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="search-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h3>Risultati Ricerca</h3>
+            <div id="search-results" class="game-grid search-results-grid"></div>
+        </div>
+    </div>
+    <div id="game-detail-modal" class="modal"></div>
+    <div id="journal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h3>Nuova Voce del Diario</h3>
+            <form id="journal-form">
+                <div class="form-group">
+                    <label for="journal-game">Gioco:</label>
+                    <select id="journal-game" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="journal-title">Titolo sessione:</label>
+                    <input type="text" id="journal-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="journal-notes">Note:</label>
+                    <textarea id="journal-notes" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Aggiungi Voce</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
