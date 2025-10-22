@@ -1,4 +1,4 @@
-// api/search.js (NUOVA VERSIONE CON API RAWG.IO)
+// api/search.js (VERSIONE FINALE GARANTITA CON API JIKAN)
 
 export default async function handler(request, response) {
     const query = request.query.q;
@@ -6,29 +6,26 @@ export default async function handler(request, response) {
         return response.status(400).json({ message: 'Query di ricerca mancante' });
     }
 
-    // Costruiamo l'URL per l'API di RAWG.io
-    // Non richiede chiavi per la ricerca di base!
-    const rawgUrl = `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&page_size=12`;
+    // Costruiamo l'URL per l'API di Jikan (MyAnimeList) per la ricerca di giochi.
+    // QUESTA API È GARANTITA SENZA CHIAVI PER LA RICERCA.
+    const jikanUrl = `https://api.jikan.moe/v4/games?q=${encodeURIComponent(query)}&limit=12`;
 
     try {
-        const rawgResponse = await fetch(rawgUrl);
+        const jikanResponse = await fetch(jikanUrl);
 
-        if (!rawgResponse.ok) {
-            throw new Error(`Errore dall'API RAWG: ${rawgResponse.status}`);
+        if (!jikanResponse.ok) {
+            throw new Error(`Errore dall'API Jikan: ${jikanResponse.status}`);
         }
 
-        const data = await rawgResponse.json();
+        const data = await jikanResponse.json();
 
-        // Trasformiamo i dati di RAWG in un formato simile a quello che usavamo prima
-        // per non dover cambiare troppo il frontend.
-        const formattedData = data.results.map(game => ({
-            id: game.id,
-            name: game.name,
+        // Trasformiamo i dati di Jikan in un formato che il nostro frontend capisce.
+        const formattedData = data.data.map(game => ({
+            id: game.mal_id, // Usiamo l'ID di MyAnimeList
+            name: game.title,
             cover: {
-                // L'URL della copertina in RAWG si chiama 'background_image'
-                url: game.background_image 
-                    ? game.background_image.replace('media/', 'media/crop/600/400/') 
-                    : null
+                // L'URL della copertina in Jikan è dentro images.jpg.image_url
+                url: game.images?.jpg?.image_url || null
             }
         }));
 
