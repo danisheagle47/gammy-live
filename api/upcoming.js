@@ -5,11 +5,16 @@ export default async function handler(request, response) {
         fields name, cover.url, first_release_date, hypes;
         where first_release_date > ${now} & hypes > 50 & category = 0 & cover.url != null;
         sort hypes desc;
-        limit 12;
+        limit: 12;
     `;
     try {
         const data = await makeIgdbRequest('games', body);
-        response.status(200).json(data);
+        // Standardizzazione dell'oggetto 'game'
+        const formattedData = data.map(game => ({
+            ...game,
+            cover: { url: game.cover.url ? `https:${game.cover.url}` : null }
+        }));
+        response.status(200).json(formattedData);
     } catch (error) {
         response.status(500).json({ message: error.message });
     }

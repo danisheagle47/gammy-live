@@ -64,6 +64,7 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 .game-card:hover {
     transform: translateZ(20px) scale(1.05);
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    z-index: 10; /* <<<===== LA CORREZIONE PER IL CLICK! */
 }
 .game-card-poster {
     width: 100%;

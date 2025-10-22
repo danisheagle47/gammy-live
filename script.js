@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nextMonthBtn: document.getElementById('next-month-btn')
     };
 
-    const getCoverUrl = (url) => url ? url.replace('media/', 'media/crop/600/400/') : 'https://placehold.co/200x270/1E1E1E/9933FF?text=N/A';
+    const getCoverUrl = (url) => url || 'https://placehold.co/200x270/1E1E1E/9933FF?text=N/A';
     const showLoading = (container) => container.innerHTML = '<div class="loading-spinner"></div>';
     const showPlaceholder = (container, message) => container.innerHTML = `<p class="placeholder-text">${message}</p>`;
     const openModal = (modal) => { dom.modalBackdrop.classList.add('active'); modal.classList.add('active'); };
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const createKineticCardHTML = (game, { action, actionText, inList }) => `
         <div class="game-card">
-            <img src="${getCoverUrl(game.cover?.url || game.cover)}" alt="${game.name}" class="game-card-poster">
+            <img src="${getCoverUrl(game.cover.url)}" alt="${game.name}" class="game-card-poster">
             <div class="game-card-title-overlay">${game.name}</div>
             <div class="game-card-details">
                 <h4>${game.name}</h4>
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.library.length === 0) { showPlaceholder(dom.libraryGrid, "La tua libreria è vuota. Cerca un gioco per iniziare!"); return; }
         dom.libraryGrid.innerHTML = state.library.map(game => `
             <div class="game-card">
-                <img src="${getCoverUrl(game.cover?.url || game.cover)}" alt="${game.name}" class="game-card-poster">
+                <img src="${getCoverUrl(game.cover.url)}" alt="${game.name}" class="game-card-poster">
                  <div class="game-card-title-overlay">${game.name}</div>
                  <div class="game-card-details">
                     <h4>${game.name}</h4>
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.wishlist.length === 0) { showPlaceholder(dom.wishlistGrid, "La tua wishlist è vuota."); return; }
         dom.wishlistGrid.innerHTML = state.wishlist.map(game => `
             <div class="game-card">
-                <img src="${getCoverUrl(game.cover?.url || game.cover)}" alt="${game.name}" class="game-card-poster">
+                <img src="${getCoverUrl(game.cover.url)}" alt="${game.name}" class="game-card-poster">
                 <div class="game-card-title-overlay">${game.name}</div>
                 <div class="game-card-details">
                     <h4>${game.name}</h4>
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderNews = () => renderApiSection(dom.newsFeed, '/api/news', item => `
         <a class="news-card" href="${item.url}" target="_blank" rel="noopener noreferrer">
-            <img src="${item.image ? item.image.replace('t_thumb', 't_screenshot_med') : 'https://placehold.co/300x180/1E1E1E/9933FF?text=N/A'}" alt="${item.title}">
+            <img src="${item.cover.url}" alt="${item.title}">
             <div class="news-content">
                 <h4>${item.title}</h4>
                 <p>${item.summary || ''}</p>
@@ -203,15 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (actionBtn) {
                 const action = actionBtn.dataset.action;
                 const gameId = parseInt(actionBtn.dataset.id);
+                const gameData = actionBtn.dataset.game ? JSON.parse(actionBtn.dataset.game) : null;
 
-                if (action.startsWith('add-')) {
-                    const game = JSON.parse(actionBtn.dataset.game);
-                    if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
-                        state.library.push(game);
+                if (action.startsWith('add-') && gameData) {
+                    if (action === 'add-library' && !state.library.some(g => g.id === gameData.id)) {
+                        state.library.push(gameData);
                         renderLibrary();
-                        closeModal(); // Chiude il modal di ricerca dopo l'aggiunta
-                    } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
-                        state.wishlist.push(game);
+                        actionBtn.textContent = 'In Libreria';
+                        actionBtn.disabled = true;
+                    } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === gameData.id)) {
+                        state.wishlist.push(gameData);
                         renderWishlist();
                         actionBtn.textContent = 'In Wishlist';
                         actionBtn.disabled = true;
@@ -243,5 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderNews();
         renderCalendar();
     };
+
     initialize();
 });
