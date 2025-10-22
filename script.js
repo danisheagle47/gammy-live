@@ -35,19 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
         prevMonthBtn: document.getElementById('prev-month-btn'),
         nextMonthBtn: document.getElementById('next-month-btn')
     };
-    // Sostituisci solo questa funzione in script.js
-
-const getCoverUrl = (url, size = 'cover_big') => {
-    if (!url) {
-        return 'https://placehold.co/180x240/1E1E1E/9933FF?text=N/A';
-    }
-    // Se l'URL inizia con '//', è di IGDB, quindi aggiungiamo 'https:'
-    if (url.startsWith('//')) {
-        return `https:${url.replace('t_thumb', `t_${size}`)}`;
-    }
-    // Altrimenti, è un URL completo (da RAWG), lo usiamo così com'è.
-    return url;
-};
+    const getCoverUrl = (url, size = 'cover_big') => {
+        if (!url) {
+            return 'https://placehold.co/180x240/1E1E1E/9933FF?text=N/A';
+        }
+        if (url.startsWith('//')) {
+            return `https:${url.replace('t_thumb', `t_${size}`)}`;
+        }
+        return url;
+    };
     const showLoading = (container) => container.innerHTML = '<div class="loading-spinner"></div>';
     const showPlaceholder = (container, message) => container.innerHTML = `<p class="placeholder-text">${message}</p>`;
     const openModal = (modal) => { dom.modalBackdrop.classList.add('active'); modal.classList.add('active'); };
@@ -91,50 +87,40 @@ const getCoverUrl = (url, size = 'cover_big') => {
             </div>
         `).join('');
     };
-    // Sostituisci solo questa funzione in script.js
-
-// Sostituisci solo questa funzione in script.js (VERSIONE FINALE E FUNZIONANTE)
-
-const handleSearch = async () => {
-    const query = dom.searchInput.value.trim();
-    if (!query) return;
-    openModal(dom.searchModal);
-    showLoading(dom.searchResultsContainer);
-
-    try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const results = await response.json(); // Ora 'results' conterrà la lista di giochi
-
-        if (!response.ok) {
-            throw new Error(results.message || `Errore ${response.status}`);
+    const handleSearch = async () => {
+        const query = dom.searchInput.value.trim();
+        if (!query) return;
+        openModal(dom.searchModal);
+        showLoading(dom.searchResultsContainer);
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+            if (!response.ok) {
+                throw new Error(results.message || `Errore ${response.status}`);
+            }
+            dom.searchResultsContainer.innerHTML = '';
+            if (results.length === 0) {
+                showPlaceholder(dom.searchResultsContainer, "Nessun risultato trovato.");
+                return;
+            }
+            dom.searchResultsContainer.innerHTML = results.map(game => {
+                const inLibrary = state.library.some(libGame => libGame.id === game.id);
+                return `
+                    <div class="game-card">
+                        <img src="${getCoverUrl(game.cover?.url)}" alt="${game.name}">
+                        <div class="action-overlay">
+                            <button class="action-btn" data-action="add-library" data-game='${JSON.stringify(game)}' ${inLibrary ? 'disabled' : ''}>
+                                ${inLibrary ? 'In Libreria' : 'Aggiungi'}
+                            </button>
+                        </div>
+                        <div class="game-card-info"><h4>${game.name}</h4></div>
+                    </div>`;
+            }).join('');
+        } catch (error) {
+            showPlaceholder(dom.searchResultsContainer, `<b>Errore di Ricerca:</b><br>${error.message}.`);
+            console.error("Dettaglio Errore Ricerca:", error);
         }
-
-        dom.searchResultsContainer.innerHTML = '';
-        if (results.length === 0) {
-            showPlaceholder(dom.searchResultsContainer, "Nessun risultato trovato.");
-            return;
-        }
-
-        // Questo codice ora funzionerà perché i dati sono corretti
-        dom.searchResultsContainer.innerHTML = results.map(game => {
-            const inLibrary = state.library.some(libGame => libGame.id === game.id);
-            return `
-                <div class="game-card">
-                    <img src="${getCoverUrl(game.cover?.url)}" alt="${game.name}">
-                    <div class="action-overlay">
-                        <button class="action-btn" data-action="add-library" data-game='${JSON.stringify(game)}' ${inLibrary ? 'disabled' : ''}>
-                            ${inLibrary ? 'In Libreria' : 'Aggiungi'}
-                        </button>
-                    </div>
-                    <div class="game-card-info"><h4>${game.name}</h4></div>
-                </div>`;
-        }).join('');
-
-    } catch (error) {
-        showPlaceholder(dom.searchResultsContainer, `<b>Errore di Ricerca:</b><br>${error.message}.`);
-        console.error("Dettaglio Errore Ricerca:", error);
-    }
-};
+    };
     const renderApiSection = async (container, apiEndpoint, cardRenderer) => {
         showLoading(container);
         try {
@@ -254,14 +240,19 @@ const handleSearch = async () => {
             }
             const actionBtn = target.closest('.action-btn');
             if (actionBtn) {
-                const game = JSON.parse(actionBtn.dataset.game);
+                const gameDataFromButton = JSON.parse(actionBtn.dataset.game);
                 const action = actionBtn.dataset.action;
-                if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
-                    state.library.push(game);
+                const cleanGame = {
+                    id: gameDataFromButton.id,
+                    name: gameDataFromButton.name,
+                    cover: { url: gameDataFromButton.cover?.url || null }
+                };
+                if (action === 'add-library' && !state.library.some(g => g.id === cleanGame.id)) {
+                    state.library.push(cleanGame);
                     renderLibrary();
                     closeModal();
-                } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
-                    state.wishlist.push(game);
+                } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === cleanGame.id)) {
+                    state.wishlist.push(cleanGame);
                     renderWishlist();
                     actionBtn.textContent = 'In Wishlist';
                     actionBtn.disabled = true;
