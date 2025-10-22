@@ -1,29 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // =========================================================================
-    // 1. STATO GLOBALE E GESTIONE DATI
-    // =========================================================================
     let state = {
         library: [],
         wishlist: [],
         journal: [],
         currentMonth: new Date()
     };
-
     const loadStateFromStorage = () => {
         state.library = JSON.parse(localStorage.getItem('gammyLibrary')) || [];
         state.wishlist = JSON.parse(localStorage.getItem('gammyWishlist')) || [];
         state.journal = JSON.parse(localStorage.getItem('gammyJournal')) || [];
     };
-
     const saveStateToStorage = () => {
         localStorage.setItem('gammyLibrary', JSON.stringify(state.library));
         localStorage.setItem('gammyWishlist', JSON.stringify(state.wishlist));
         localStorage.setItem('gammyJournal', JSON.stringify(state.journal));
     };
-
-    // =========================================================================
-    // 2. SELETTORI DOM
-    // =========================================================================
     const dom = {
         libraryGrid: document.getElementById('library-grid'),
         wishlistGrid: document.getElementById('wishlist-grid'),
@@ -44,19 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         prevMonthBtn: document.getElementById('prev-month-btn'),
         nextMonthBtn: document.getElementById('next-month-btn')
     };
-
-    // =========================================================================
-    // 3. FUNZIONI HELPER E UTILITY
-    // =========================================================================
     const getCoverUrl = (url, size = 'cover_big') => url ? `https:${url.replace('t_thumb', `t_${size}`)}` : 'https://placehold.co/180x240/1E1E1E/9933FF?text=N/A';
     const showLoading = (container) => container.innerHTML = '<div class="loading-spinner"></div>';
     const showPlaceholder = (container, message) => container.innerHTML = `<p class="placeholder-text">${message}</p>`;
     const openModal = (modal) => { dom.modalBackdrop.classList.add('active'); modal.classList.add('active'); };
     const closeModal = () => { document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active')); dom.modalBackdrop.classList.remove('active'); };
-
-    // =========================================================================
-    // 4. FUNZIONI DI RENDER (Disegnano l'interfaccia)
-    // =========================================================================
     const renderLibrary = () => {
         if (state.library.length === 0) {
             showPlaceholder(dom.libraryGrid, "La tua libreria è vuota. Cerca un gioco per iniziare!");
@@ -70,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
     };
-
     const renderWishlist = () => {
         if (state.wishlist.length === 0) {
             showPlaceholder(dom.wishlistGrid, "La tua wishlist è vuota.");
@@ -84,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
     };
-
     const renderJournal = () => {
         if (state.journal.length === 0) {
             showPlaceholder(dom.journalList, "Nessuna voce nel diario.");
@@ -98,30 +79,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
     };
-
-    // =========================================================================
-    // 5. FUNZIONI API-DRIVEN (Parlano con il server)
-    // =========================================================================
     const handleSearch = async () => {
         const query = dom.searchInput.value.trim();
         if (!query) return;
         openModal(dom.searchModal);
         showLoading(dom.searchResultsContainer);
-
         try {
             const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.message || `Errore ${response.status}`);
             }
-
             dom.searchResultsContainer.innerHTML = '';
             if (data.length === 0) {
                 showPlaceholder(dom.searchResultsContainer, "Nessun risultato trovato.");
                 return;
             }
-
             dom.searchResultsContainer.innerHTML = data.map(game => {
                 const inLibrary = state.library.some(libGame => libGame.id === game.id);
                 return `
@@ -140,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Dettaglio Errore Ricerca:", error);
         }
     };
-    
     const renderApiSection = async (container, apiEndpoint, cardRenderer) => {
         showLoading(container);
         try {
@@ -156,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showPlaceholder(container, `Impossibile caricare la sezione. ${error.message}`);
         }
     };
-    
     const renderUpcoming = () => renderApiSection(dom.upcomingGrid, '/api/upcoming', game => {
         const inWishlist = state.wishlist.some(w => w.id === game.id);
         return `
@@ -170,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="game-card-info"><h4>${game.name}</h4></div>
             </div>`;
     });
-
     const renderNews = () => renderApiSection(dom.newsFeed, '/api/news', item => `
         <a class="news-card" href="${item.url}" target="_blank" rel="noopener noreferrer">
             <img src="${getCoverUrl(item.image, 'screenshot_med')}" alt="${item.title}">
@@ -181,180 +151,142 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </a>`
     );
-
-    // Cerca la funzione renderCalendar nel tuo script.js e sostituiscila con questa
-
-const renderCalendar = async () => {
-    dom.calendarMonthYear.textContent = state.currentMonth.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-    showLoading(dom.calendarContainer);
-
-    const firstDayOfMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth(), 1);
-    const lastDayOfMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 0);
-    const start = Math.floor(firstDayOfMonth.getTime() / 1000);
-    const end = Math.floor(lastDayOfMonth.getTime() / 1000);
-
-    try {
-        const response = await fetch(`/api/releases?start=${start}&end=${end}`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Errore ${response.status}`);
-        }
-        const releases = await response.json();
-        
-        const releasesByDay = releases.reduce((acc, release) => {
-            const day = new Date(release.date * 1000).getDate();
-            if (!acc[day]) acc[day] = [];
-            acc[day].push(release);
-            return acc;
-        }, {});
-
-        let html = '<div class="calendar-grid">';
-        const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-        html += daysOfWeek.map(day => `<div class="calendar-day-name">${day}</div>`).join('');
-        
-        const firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
-        for (let i = 0; i < firstDayIndex; i++) {
-            html += `<div class="calendar-day other-month"></div>`;
-        }
-
-        for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-            html += `<div class="calendar-day"><div class="day-number">${day}</div><div class="day-releases">`;
-            if (releasesByDay[day]) {
-                // CODICE CORRETTO E DIFENSIVO: Controlla se 'r.platform' esiste prima di usarlo.
-                html += releasesByDay[day].map(r => {
-                    const platformAbbr = r.platform ? `(${r.platform.abbreviation})` : '';
-                    return `<div class="release-item" title="${r.game.name} ${platformAbbr}">${r.game.name}</div>`;
-                }).join('');
+    const renderCalendar = async () => {
+        dom.calendarMonthYear.textContent = state.currentMonth.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+        showLoading(dom.calendarContainer);
+        const firstDayOfMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth(), 1);
+        const lastDayOfMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 0);
+        const start = Math.floor(firstDayOfMonth.getTime() / 1000);
+        const end = Math.floor(lastDayOfMonth.getTime() / 1000);
+        try {
+            const response = await fetch(`/api/releases?start=${start}&end=${end}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Errore ${response.status}`);
             }
-            html += `</div></div>`;
+            const releases = await response.json();
+            const releasesByDay = releases.reduce((acc, release) => {
+                const day = new Date(release.date * 1000).getDate();
+                if (!acc[day]) acc[day] = [];
+                acc[day].push(release);
+                return acc;
+            }, {});
+            let html = '<div class="calendar-grid">';
+            const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+            html += daysOfWeek.map(day => `<div class="calendar-day-name">${day}</div>`).join('');
+            const firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += `<div class="calendar-day other-month"></div>`;
+            }
+            for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+                html += `<div class="calendar-day"><div class="day-number">${day}</div><div class="day-releases">`;
+                if (releasesByDay[day]) {
+                    html += releasesByDay[day].map(r => {
+                        const platformAbbr = r.platform ? `(${r.platform.abbreviation})` : '';
+                        return `<div class="release-item" title="${r.game.name} ${platformAbbr}">${r.game.name}</div>`;
+                    }).join('');
+                }
+                html += `</div></div>`;
+            }
+            html += '</div>';
+            dom.calendarContainer.innerHTML = html;
+        } catch (error) {
+            showPlaceholder(dom.calendarContainer, `Impossibile caricare il calendario. <br><small>${error.message}</small>`);
+            console.error("Errore Calendario:", error);
         }
-        html += '</div>';
-        dom.calendarContainer.innerHTML = html;
-    } catch (error) {
-        showPlaceholder(dom.calendarContainer, `Impossibile caricare il calendario. <br><small>${error.message}</small>`);
-        console.error("Errore Calendario:", error);
-    }
-};
-    
-// =========================================================================
-// 6. GESTIONE EVENTI
-// =========================================================================
-// Cerca la funzione setupEventListeners nel tuo script.js e sostituiscila con questa
-
-const setupEventListeners = () => {
-    // --- Ricerca ---
-    dom.searchBtn.addEventListener('click', handleSearch);
-    dom.searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSearch();
-    });
-
-    // --- Tema ---
-    dom.themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        localStorage.setItem('gammy-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-    });
-
-    // --- Navigazione Pagine ---
-    dom.navLinks.forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            const targetId = link.dataset.section;
-            dom.pages.forEach(page => page.classList.toggle('active', page.id === targetId));
-            dom.navLinks.forEach(nav => nav.classList.toggle('active', nav.dataset.section === targetId));
+    };
+    const setupEventListeners = () => {
+        dom.searchBtn.addEventListener('click', handleSearch);
+        dom.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
         });
-    });
-
-    // --- Navigazione Calendario ---
-    dom.prevMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() - 1); renderCalendar(); });
-    dom.nextMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() + 1); renderCalendar(); });
-    
-    // --- UNICO LISTENER PER TUTTE LE AZIONI DINAMICHE ---
-    document.body.addEventListener('click', e => {
-        const target = e.target;
-
-        // 1. Chiusura dei Modal (massima priorità)
-        if (target.classList.contains('close-modal-btn') || target.id === 'modal-backdrop') {
-            closeModal();
-            return;
-        }
-
-        // 2. Click sul pulsante per aprire il form del diario
-        if (target.closest('#add-journal-entry-btn')) {
-            const select = document.getElementById('journal-game');
-            if (state.library.length > 0) {
-                select.innerHTML = state.library.map(game => `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`).join('');
-            } else {
-                select.innerHTML = '<option disabled>Aggiungi prima un gioco alla libreria</option>';
-            }
-            openModal(dom.journalModal);
-            return;
-        }
-
-        // 3. Click sui bottoni "Aggiungi" o "Rimuovi"
-        const actionBtn = target.closest('.action-btn');
-        if (actionBtn) {
-            const game = JSON.parse(actionBtn.dataset.game);
-            const action = actionBtn.dataset.action;
-            if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
-                state.library.push(game);
-                renderLibrary();
+        dom.themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('gammy-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+        dom.navLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const targetId = link.dataset.section;
+                dom.pages.forEach(page => page.classList.toggle('active', page.id === targetId));
+                dom.navLinks.forEach(nav => nav.classList.toggle('active', nav.dataset.section === targetId));
+            });
+        });
+        dom.prevMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() - 1); renderCalendar(); });
+        dom.nextMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() + 1); renderCalendar(); });
+        document.body.addEventListener('click', e => {
+            const target = e.target;
+            if (target.classList.contains('close-modal-btn') || target.id === 'modal-backdrop') {
                 closeModal();
-            } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
-                state.wishlist.push(game);
-                renderWishlist();
-                actionBtn.textContent = 'In Wishlist';
-                actionBtn.disabled = true;
+                return;
             }
-            saveStateToStorage();
-            return;
-        }
-
-        const removeBtn = target.closest('.remove-btn');
-        if (removeBtn) {
-            const gameId = parseInt(removeBtn.dataset.id);
-            const list = removeBtn.dataset.list;
-            if (list === 'library' && confirm('Rimuovere questo gioco dalla libreria?')) {
-                state.library = state.library.filter(g => g.id !== gameId);
-                renderLibrary();
-            } else if (list === 'wishlist' && confirm('Rimuovere questo gioco dalla wishlist?')) {
-                state.wishlist = state.wishlist.filter(g => g.id !== gameId);
-                renderWishlist();
-                renderUpcoming(); 
+            if (target.closest('#add-journal-entry-btn')) {
+                const select = document.getElementById('journal-game');
+                if (state.library.length > 0) {
+                    select.innerHTML = state.library.map(game => `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option disabled>Aggiungi prima un gioco alla libreria</option>';
+                }
+                openModal(dom.journalModal);
+                return;
             }
-            saveStateToStorage();
-            return;
-        }
-    });
-
-    // --- Gestione Invio Form Diario ---
-    document.getElementById('journal-form').addEventListener('submit', e => {
-        e.preventDefault();
-        const form = e.target;
-        const selectedOption = form.elements['journal-game'].options[form.elements['journal-game'].selectedIndex];
-        if (!selectedOption) return;
-        state.journal.push({
-            gameId: parseInt(selectedOption.value),
-            gameName: selectedOption.dataset.name,
-            title: form.elements['journal-title'].value,
-            notes: form.elements['journal-notes'].value,
-            date: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+            const actionBtn = target.closest('.action-btn');
+            if (actionBtn) {
+                const game = JSON.parse(actionBtn.dataset.game);
+                const action = actionBtn.dataset.action;
+                if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
+                    state.library.push(game);
+                    renderLibrary();
+                    closeModal();
+                } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
+                    state.wishlist.push(game);
+                    renderWishlist();
+                    actionBtn.textContent = 'In Wishlist';
+                    actionBtn.disabled = true;
+                }
+                saveStateToStorage();
+                return;
+            }
+            const removeBtn = target.closest('.remove-btn');
+            if (removeBtn) {
+                const gameId = parseInt(removeBtn.dataset.id);
+                const list = removeBtn.dataset.list;
+                if (list === 'library' && confirm('Rimuovere questo gioco dalla libreria?')) {
+                    state.library = state.library.filter(g => g.id !== gameId);
+                    renderLibrary();
+                } else if (list === 'wishlist' && confirm('Rimuovere questo gioco dalla wishlist?')) {
+                    state.wishlist = state.wishlist.filter(g => g.id !== gameId);
+                    renderWishlist();
+                    renderUpcoming(); 
+                }
+                saveStateToStorage();
+                return;
+            }
         });
-        saveStateToStorage();
-        renderJournal();
-        closeModal();
-        form.reset();
-    });
-};
-    // =========================================================================
-    // 7. INIZIALIZZAZIONE
-    // =========================================================================
+        document.getElementById('journal-form').addEventListener('submit', e => {
+            e.preventDefault();
+            const form = e.target;
+            const selectedOption = form.elements['journal-game'].options[form.elements['journal-game'].selectedIndex];
+            if (!selectedOption) return;
+            state.journal.push({
+                gameId: parseInt(selectedOption.value),
+                gameName: selectedOption.dataset.name,
+                title: form.elements['journal-title'].value,
+                notes: form.elements['journal-notes'].value,
+                date: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+            });
+            saveStateToStorage();
+            renderJournal();
+            closeModal();
+            form.reset();
+        });
+    };
     const initialize = () => {
         if (localStorage.getItem('gammy-theme') === 'light') {
             document.body.classList.remove('dark-theme');
         }
         loadStateFromStorage();
         setupEventListeners();
-
         renderLibrary();
         renderWishlist();
         renderJournal();
@@ -362,6 +294,5 @@ const setupEventListeners = () => {
         renderNews();
         renderCalendar();
     };
-
     initialize();
 });
