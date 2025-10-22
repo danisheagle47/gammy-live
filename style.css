@@ -64,7 +64,7 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 .action-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; cursor: default; }
 .game-card:hover .action-overlay { opacity: 1; }
 .action-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; cursor: pointer; }
-.action-btn:disabled { background: #555; cursor: not-allowed; }
+.action-btn[disabled], .action-btn[disabled]:hover { background: #555; cursor: not-allowed; }
 .remove-btn { position: absolute; top: 10px; right: 10px; background-color: rgba(199, 0, 57, 0.8); color: white; border-radius: 50%; width: 30px; height: 30px; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; z-index: 2; }
 .game-card:hover .remove-btn { opacity: 1; }
 .remove-btn:hover { background-color: rgba(199, 0, 57, 1); transform: scale(1.1); }
@@ -81,9 +81,10 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 #calendar-nav { display: flex; align-items: center; gap: 15px; }
 #calendar-nav button { background: none; border: 1px solid var(--border-color); border-radius: 50%; width: 36px; height: 36px; cursor: pointer; color: var(--text-main); font-size: 18px; }
 #calendar-month-year { font-size: 24px; font-weight: 600; min-width: 200px; text-align: center; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
-.calendar-day-name { text-align: center; padding: 10px; font-weight: 600; color: var(--text-secondary); }
-.calendar-day { background-color: var(--bg-element); border-radius: 8px; min-height: 120px; padding: 8px; }
+#calendar-grid-container { background-color: var(--bg-element); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-top: 20px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.calendar-day-name { text-align: center; padding-bottom: 10px; font-weight: 600; color: var(--text-secondary); }
+.calendar-day { background-color: var(--bg-main); border-radius: 8px; min-height: 120px; padding: 8px; }
 .calendar-day.other-month { opacity: 0.4; }
 .day-number { font-weight: 600; }
 .day-releases { margin-top: 5px; display: flex; flex-direction: column; gap: 5px; }
@@ -108,9 +109,10 @@ body:not(.dark-theme) .fa-sun { background-color: var(--accent); color: white; }
 .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--text-secondary); cursor: pointer; line-height: 1; z-index: 2; }
 #search-results .game-card { cursor: default; }
 
+/* Form e Placeholder */
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); background-color: var(--bg-main); color: var(--text-main); border-radius: 8px; font-size: 15px; }
-
+.placeholder-text { color: var(--text-secondary); text-align: center; grid-column: 1 / -1; padding: 40px 0; }
 .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--accent); width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
