@@ -79,40 +79,34 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
     };
-    const handleSearch = async () => {
-        const query = dom.searchInput.value.trim();
-        if (!query) return;
-        openModal(dom.searchModal);
-        showLoading(dom.searchResultsContainer);
-        try {
-            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || `Errore ${response.status}`);
-            }
-            dom.searchResultsContainer.innerHTML = '';
-            if (data.length === 0) {
-                showPlaceholder(dom.searchResultsContainer, "Nessun risultato trovato.");
-                return;
-            }
-            dom.searchResultsContainer.innerHTML = data.map(game => {
-                const inLibrary = state.library.some(libGame => libGame.id === game.id);
-                return `
-                    <div class="game-card">
-                        <img src="${getCoverUrl(game.cover?.url)}" alt="${game.name}">
-                        <div class="action-overlay">
-                            <button class="action-btn" data-action="add-library" data-game='${JSON.stringify(game)}' ${inLibrary ? 'disabled' : ''}>
-                                ${inLibrary ? 'In Libreria' : 'Aggiungi'}
-                            </button>
-                        </div>
-                        <div class="game-card-info"><h4>${game.name}</h4></div>
-                    </div>`;
-            }).join('');
-        } catch (error) {
-            showPlaceholder(dom.searchResultsContainer, `<b>Errore di Ricerca:</b><br>${error.message}.<br><br>Verifica le credenziali API su Vercel e che il token non sia scaduto.`);
-            console.error("Dettaglio Errore Ricerca:", error);
+    // Sostituisci solo questa funzione in script.js
+
+const handleSearch = async () => {
+    const query = dom.searchInput.value.trim();
+    if (!query) return;
+    openModal(dom.searchModal);
+    showLoading(dom.searchResultsContainer);
+
+    try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json(); // Ora 'data' conterrà il nostro oggetto di debug
+
+        if (!response.ok) {
+            throw new Error(data.message || `Errore ${response.status}`);
         }
-    };
+
+        // MODIFICA CRUCIALE:
+        // Mostriamo la risposta grezza in un formato leggibile
+        dom.searchResultsContainer.innerHTML = `
+            <h3>Risposta Grezza dal Server:</h3>
+            <pre style="background: #222; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(data, null, 2)}</pre>
+        `;
+
+    } catch (error) {
+        showPlaceholder(dom.searchResultsContainer, `<b>Errore di Ricerca:</b><br>${error.message}.`);
+        console.error("Dettaglio Errore Ricerca:", error);
+    }
+};
     const renderApiSection = async (container, apiEndpoint, cardRenderer) => {
         showLoading(container);
         try {
