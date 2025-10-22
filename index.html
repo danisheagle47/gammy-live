@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gammy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body class="dark-theme">
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h1>Gammy</h1></div>
+            <nav class="sidebar-nav">
+                <p class="nav-title">IL MIO SPAZIO</p>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-section="libreria"><i class="fa-solid fa-gamepad fa-fw"></i> Libreria</a></li>
+                    <li><a href="#" class="nav-link" data-section="diario"><i class="fa-solid fa-book-open fa-fw"></i> Diario</a></li>
+                    <li><a href="#" class="nav-link" data-section="wishlist"><i class="fa-solid fa-star fa-fw"></i> Wishlist</a></li>
+                </ul>
+                <p class="nav-title">SCOPRI</p>
+                <ul>
+                    <li><a href="#" class="nav-link" data-section="notizie"><i class="fa-solid fa-newspaper fa-fw"></i> Notizie</a></li>
+                    <li><a href="#" class="nav-link" data-section="uscite"><i class="fa-solid fa-rocket fa-fw"></i> In Uscita</a></li>
+                    <li><a href="#" class="nav-link" data-section="calendario"><i class="fa-solid fa-calendar-days fa-fw"></i> Calendario</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="theme-switcher" id="theme-toggle">
+                    <i class="fa-solid fa-sun"></i>
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <section id="libreria" class="page active">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-gamepad"></i> La Mia Libreria</h2>
+                </div>
+                <div id="game-grid" class="game-grid"></div>
+            </section>
+
+            <section id="diario" class="page">
+                <h2><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
+                <div id="journal-list" class="journal-list"></div>
+            </section>
+            
+            <section id="wishlist" class="page">
+                <h2><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
+                <div id="wishlist-grid" class="game-grid"></div>
+            </section>
+
+            <section id="notizie" class="page">
+                <h2><i class="fa-solid fa-newspaper"></i> Notizie dal Mondo Gaming</h2>
+            </section>
+
+            <section id="uscite" class="page">
+                <h2><i class="fa-solid fa-rocket"></i> Giochi in Uscita</h2>
+            </section>
+            
+            <section id="calendario" class="page">
+                <h2><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
