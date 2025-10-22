@@ -236,100 +236,108 @@ const renderCalendar = async () => {
     }
 };
     
-    // =========================================================================
-    // 6. GESTIONE EVENTI
-    // =========================================================================
-    const setupEventListeners = () => {
-        dom.searchBtn.addEventListener('click', handleSearch);
-        dom.searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSearch());
+// =========================================================================
+// 6. GESTIONE EVENTI
+// =========================================================================
+const setupEventListeners = () => {
+    // --- Eventi principali ---
+    dom.searchBtn.addEventListener('click', handleSearch);
+    dom.searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSearch());
+    dom.themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        localStorage.setItem('gammy-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    });
 
-        dom.modalBackdrop.addEventListener('click', closeModal);
-        
-        document.addEventListener('click', e => {
-            if (e.target.classList.contains('close-modal-btn')) {
-                closeModal();
-                return;
-            }
-
-            const actionBtn = e.target.closest('.action-btn');
-            if (actionBtn) {
-                const game = JSON.parse(actionBtn.dataset.game);
-                const action = actionBtn.dataset.action;
-                if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
-                    state.library.push(game);
-                    renderLibrary();
-                    closeModal();
-                } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
-                    state.wishlist.push(game);
-                    renderWishlist();
-                    actionBtn.textContent = 'In Wishlist';
-                    actionBtn.disabled = true;
-                }
-                saveStateToStorage();
-                return;
-            }
-            
-            const removeBtn = e.target.closest('.remove-btn');
-            if (removeBtn) {
-                const gameId = parseInt(removeBtn.dataset.id);
-                const list = removeBtn.dataset.list;
-                if (list === 'library' && confirm('Rimuovere dalla libreria?')) {
-                    state.library = state.library.filter(g => g.id !== gameId);
-                    renderLibrary();
-                } else if (list === 'wishlist' && confirm('Rimuovere dalla wishlist?')) {
-                    state.wishlist = state.wishlist.filter(g => g.id !== gameId);
-                    renderWishlist();
-                    renderUpcoming();
-                }
-                saveStateToStorage();
-                return;
-            }
-        });
-
-        document.getElementById('add-journal-entry-btn').addEventListener('click', () => {
-            const select = document.getElementById('journal-game');
-            select.innerHTML = state.library.length > 0 ? '' : '<option disabled>Aggiungi prima un gioco alla libreria</option>';
-            state.library.forEach(game => {
-                select.innerHTML += `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`;
-            });
-            openModal(dom.journalModal);
-        });
-
-        document.getElementById('journal-form').addEventListener('submit', e => {
+    // --- Navigazione tra le pagine ---
+    dom.navLinks.forEach(link => {
+        link.addEventListener('click', e => {
             e.preventDefault();
-            const form = e.target;
-            const selectedOption = form.elements['journal-game'].options[form.elements['journal-game'].selectedIndex];
-            if (!selectedOption) return;
-            state.journal.push({
-                gameId: parseInt(selectedOption.value),
-                gameName: selectedOption.dataset.name,
-                title: form.elements['journal-title'].value,
-                notes: form.elements['journal-notes'].value,
-                date: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
-            });
-            saveStateToStorage();
-            renderJournal();
+            const targetId = link.dataset.section;
+            dom.pages.forEach(page => page.classList.toggle('active', page.id === targetId));
+            dom.navLinks.forEach(nav => nav.classList.toggle('active', nav.dataset.section === targetId));
+        });
+    });
+
+    // --- Navigazione Calendario ---
+    dom.prevMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() - 1); renderCalendar(); });
+    dom.nextMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() + 1); renderCalendar(); });
+
+    // --- Gestione Aggiunta Voce al Diario ---
+    document.getElementById('add-journal-entry-btn').addEventListener('click', () => {
+        const select = document.getElementById('journal-game');
+        if (state.library.length > 0) {
+            select.innerHTML = state.library.map(game => `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`).join('');
+        } else {
+            select.innerHTML = '<option disabled>Aggiungi prima un gioco alla libreria</option>';
+        }
+        openModal(dom.journalModal);
+    });
+
+    document.getElementById('journal-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const form = e.target;
+        const selectedOption = form.elements['journal-game'].options[form.elements['journal-game'].selectedIndex];
+        if (!selectedOption) return;
+        state.journal.push({
+            gameId: parseInt(selectedOption.value),
+            gameName: selectedOption.dataset.name,
+            title: form.elements['journal-title'].value,
+            notes: form.elements['journal-notes'].value,
+            date: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+        });
+        saveStateToStorage();
+        renderJournal();
+        closeModal();
+        form.reset();
+    });
+
+    // --- Gestione di tutti gli altri click (Modal, Bottoni Aggiungi/Rimuovi) ---
+    document.body.addEventListener('click', e => {
+        // Chiusura Modal cliccando sulla X o sullo sfondo
+        if (e.target.classList.contains('close-modal-btn') || e.target.id === 'modal-backdrop') {
             closeModal();
-            form.reset();
-        });
+            return;
+        }
 
-        dom.themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('gammy-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-        });
+        // Aggiunta a libreria o wishlist
+        const actionBtn = e.target.closest('.action-btn');
+        if (actionBtn) {
+            const game = JSON.parse(actionBtn.dataset.game);
+            const action = actionBtn.dataset.action;
 
-        dom.navLinks.forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                const targetId = link.dataset.section;
-                dom.pages.forEach(page => page.classList.toggle('active', page.id === targetId));
-                dom.navLinks.forEach(nav => nav.classList.toggle('active', nav.dataset.section === targetId));
-            });
-        });
+            if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
+                state.library.push(game);
+                renderLibrary();
+                closeModal();
+            } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
+                state.wishlist.push(game);
+                renderWishlist();
+                actionBtn.textContent = 'In Wishlist';
+                actionBtn.disabled = true;
+            }
+            saveStateToStorage();
+            return;
+        }
+        
+        // Rimozione da libreria o wishlist
+        const removeBtn = e.target.closest('.remove-btn');
+        if (removeBtn) {
+            const gameId = parseInt(removeBtn.dataset.id);
+            const list = removeBtn.dataset.list;
 
-        dom.prevMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() - 1); renderCalendar(); });
-        dom.nextMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() + 1); renderCalendar(); });
-    };
+            if (list === 'library' && confirm('Rimuovere questo gioco dalla libreria?')) {
+                state.library = state.library.filter(g => g.id !== gameId);
+                renderLibrary();
+            } else if (list === 'wishlist' && confirm('Rimuovere questo gioco dalla wishlist?')) {
+                state.wishlist = state.wishlist.filter(g => g.id !== gameId);
+                renderWishlist();
+                renderUpcoming(); // Ricarica la sezione "In Uscita" per riattivare il pulsante
+            }
+            saveStateToStorage();
+            return;
+        }
+    });
+};
 
     // =========================================================================
     // 7. INIZIALIZZAZIONE
