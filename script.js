@@ -239,16 +239,22 @@ const renderCalendar = async () => {
 // =========================================================================
 // 6. GESTIONE EVENTI
 // =========================================================================
+// Cerca la funzione setupEventListeners nel tuo script.js e sostituiscila con questa
+
 const setupEventListeners = () => {
-    // --- Eventi principali ---
+    // --- Ricerca ---
     dom.searchBtn.addEventListener('click', handleSearch);
-    dom.searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSearch());
+    dom.searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSearch();
+    });
+
+    // --- Tema ---
     dom.themeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
         localStorage.setItem('gammy-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
     });
 
-    // --- Navigazione tra le pagine ---
+    // --- Navigazione Pagine ---
     dom.navLinks.forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
@@ -261,18 +267,66 @@ const setupEventListeners = () => {
     // --- Navigazione Calendario ---
     dom.prevMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() - 1); renderCalendar(); });
     dom.nextMonthBtn.addEventListener('click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth() + 1); renderCalendar(); });
+    
+    // --- UNICO LISTENER PER TUTTE LE AZIONI DINAMICHE ---
+    document.body.addEventListener('click', e => {
+        const target = e.target;
 
-    // --- Gestione Aggiunta Voce al Diario ---
-    document.getElementById('add-journal-entry-btn').addEventListener('click', () => {
-        const select = document.getElementById('journal-game');
-        if (state.library.length > 0) {
-            select.innerHTML = state.library.map(game => `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`).join('');
-        } else {
-            select.innerHTML = '<option disabled>Aggiungi prima un gioco alla libreria</option>';
+        // 1. Chiusura dei Modal (massima priorità)
+        if (target.classList.contains('close-modal-btn') || target.id === 'modal-backdrop') {
+            closeModal();
+            return;
         }
-        openModal(dom.journalModal);
+
+        // 2. Click sul pulsante per aprire il form del diario
+        if (target.closest('#add-journal-entry-btn')) {
+            const select = document.getElementById('journal-game');
+            if (state.library.length > 0) {
+                select.innerHTML = state.library.map(game => `<option value="${game.id}" data-name="${game.name}">${game.name}</option>`).join('');
+            } else {
+                select.innerHTML = '<option disabled>Aggiungi prima un gioco alla libreria</option>';
+            }
+            openModal(dom.journalModal);
+            return;
+        }
+
+        // 3. Click sui bottoni "Aggiungi" o "Rimuovi"
+        const actionBtn = target.closest('.action-btn');
+        if (actionBtn) {
+            const game = JSON.parse(actionBtn.dataset.game);
+            const action = actionBtn.dataset.action;
+            if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
+                state.library.push(game);
+                renderLibrary();
+                closeModal();
+            } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
+                state.wishlist.push(game);
+                renderWishlist();
+                actionBtn.textContent = 'In Wishlist';
+                actionBtn.disabled = true;
+            }
+            saveStateToStorage();
+            return;
+        }
+
+        const removeBtn = target.closest('.remove-btn');
+        if (removeBtn) {
+            const gameId = parseInt(removeBtn.dataset.id);
+            const list = removeBtn.dataset.list;
+            if (list === 'library' && confirm('Rimuovere questo gioco dalla libreria?')) {
+                state.library = state.library.filter(g => g.id !== gameId);
+                renderLibrary();
+            } else if (list === 'wishlist' && confirm('Rimuovere questo gioco dalla wishlist?')) {
+                state.wishlist = state.wishlist.filter(g => g.id !== gameId);
+                renderWishlist();
+                renderUpcoming(); 
+            }
+            saveStateToStorage();
+            return;
+        }
     });
 
+    // --- Gestione Invio Form Diario ---
     document.getElementById('journal-form').addEventListener('submit', e => {
         e.preventDefault();
         const form = e.target;
@@ -290,55 +344,7 @@ const setupEventListeners = () => {
         closeModal();
         form.reset();
     });
-
-    // --- Gestione di tutti gli altri click (Modal, Bottoni Aggiungi/Rimuovi) ---
-    document.body.addEventListener('click', e => {
-        // Chiusura Modal cliccando sulla X o sullo sfondo
-        if (e.target.classList.contains('close-modal-btn') || e.target.id === 'modal-backdrop') {
-            closeModal();
-            return;
-        }
-
-        // Aggiunta a libreria o wishlist
-        const actionBtn = e.target.closest('.action-btn');
-        if (actionBtn) {
-            const game = JSON.parse(actionBtn.dataset.game);
-            const action = actionBtn.dataset.action;
-
-            if (action === 'add-library' && !state.library.some(g => g.id === game.id)) {
-                state.library.push(game);
-                renderLibrary();
-                closeModal();
-            } else if (action === 'add-wishlist' && !state.wishlist.some(g => g.id === game.id)) {
-                state.wishlist.push(game);
-                renderWishlist();
-                actionBtn.textContent = 'In Wishlist';
-                actionBtn.disabled = true;
-            }
-            saveStateToStorage();
-            return;
-        }
-        
-        // Rimozione da libreria o wishlist
-        const removeBtn = e.target.closest('.remove-btn');
-        if (removeBtn) {
-            const gameId = parseInt(removeBtn.dataset.id);
-            const list = removeBtn.dataset.list;
-
-            if (list === 'library' && confirm('Rimuovere questo gioco dalla libreria?')) {
-                state.library = state.library.filter(g => g.id !== gameId);
-                renderLibrary();
-            } else if (list === 'wishlist' && confirm('Rimuovere questo gioco dalla wishlist?')) {
-                state.wishlist = state.wishlist.filter(g => g.id !== gameId);
-                renderWishlist();
-                renderUpcoming(); // Ricarica la sezione "In Uscita" per riattivare il pulsante
-            }
-            saveStateToStorage();
-            return;
-        }
-    });
 };
-
     // =========================================================================
     // 7. INIZIALIZZAZIONE
     // =========================================================================
