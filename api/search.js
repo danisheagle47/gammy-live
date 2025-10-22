@@ -1,4 +1,4 @@
-// api/search.js (VERSIONE FINALE GARANTITA CON API JIKAN)
+// api/search.js (VERSIONE FINALE CON CHIAVE RAWG)
 
 export default async function handler(request, response) {
     const query = request.query.q;
@@ -6,26 +6,35 @@ export default async function handler(request, response) {
         return response.status(400).json({ message: 'Query di ricerca mancante' });
     }
 
-    // Costruiamo l'URL per l'API di Jikan (MyAnimeList) per la ricerca di giochi.
-    // QUESTA API È GARANTITA SENZA CHIAVI PER LA RICERCA.
-    const jikanUrl = `https://api.jikan.moe/v4/games?q=${encodeURIComponent(query)}&limit=12`;
+    // Prendiamo la nuova chiave API di RAWG dalle variabili d'ambiente
+    const RAWG_API_KEY = process.env.VITE_RAWG_API_KEY;
+
+    if (!RAWG_API_KEY) {
+        return response.status(500).json({ message: 'Chiave API di RAWG non configurata sul server.' });
+    }
+
+    // Costruiamo l'URL per l'API di RAWG, questa volta includendo la nostra chiave.
+    const rawgUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(query)}&page_size=12`;
 
     try {
-        const jikanResponse = await fetch(jikanUrl);
+        const rawgResponse = await fetch(rawgUrl);
 
-        if (!jikanResponse.ok) {
-            throw new Error(`Errore dall'API Jikan: ${jikanResponse.status}`);
+        if (!rawgResponse.ok) {
+            // Se la chiave è sbagliata, darà un errore 401 Unauthorized
+            const errorData = await rawgResponse.json();
+            throw new Error(errorData.detail || `Errore dall'API RAWG: ${rawgResponse.status}`);
         }
 
-        const data = await jikanResponse.json();
+        const data = await rawgResponse.json();
 
-        // Trasformiamo i dati di Jikan in un formato che il nostro frontend capisce.
-        const formattedData = data.data.map(game => ({
-            id: game.mal_id, // Usiamo l'ID di MyAnimeList
-            name: game.title,
+        // Trasformiamo i dati nel formato che il nostro frontend si aspetta
+        const formattedData = data.results.map(game => ({
+            id: game.id,
+            name: game.name,
             cover: {
-                // L'URL della copertina in Jikan è dentro images.jpg.image_url
-                url: game.images?.jpg?.image_url || null
+                url: game.background_image 
+                    ? game.background_image.replace('media/', 'media/crop/600/400/') 
+                    : null
             }
         }));
 
