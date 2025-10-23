@@ -19,15 +19,12 @@ export const state = {
   lang: read(STORAGE_KEYS.lang, 'it'),
   library: read(STORAGE_KEYS.library, []),
   wishlist: read(STORAGE_KEYS.wishlist, []),
-  diary: read(STORAGE_KEYS.diary, []), // [{id, rawgId, title, note, createdAt}]
-  ratings: read(STORAGE_KEYS.ratings, {}), // { rawgId: 1..5 }
-  translations: read(STORAGE_KEYS.translations, {}) // { hash(text|lang): translatedText }
+  diary: read(STORAGE_KEYS.diary, []),
+  ratings: read(STORAGE_KEYS.ratings, {}),
+  translations: read(STORAGE_KEYS.translations, {})
 };
 
-export function setLang(lang) {
-  state.lang = lang;
-  write(STORAGE_KEYS.lang, lang);
-}
+export function setLang(lang) { state.lang = lang; write(STORAGE_KEYS.lang, lang); }
 export function saveLibrary() { write(STORAGE_KEYS.library, state.library); }
 export function saveWishlist() { write(STORAGE_KEYS.wishlist, state.wishlist); }
 export function saveDiary() { write(STORAGE_KEYS.diary, state.diary); }
@@ -38,30 +35,19 @@ export function inLibrary(rawgId){ return state.library.some(g => g.id === rawgI
 export function inWishlist(rawgId){ return state.wishlist.some(g => g.id === rawgId); }
 
 export function addToLibrary(game){
-  if (!inLibrary(game.id)) {
-    state.library.unshift(minifyGame(game));
-    saveLibrary();
-  }
+  if (!inLibrary(game.id)) { state.library.unshift(minifyGame(game)); saveLibrary(); }
 }
 export function removeFromLibrary(rawgId){
   state.library = state.library.filter(g => g.id !== rawgId);
-  delete state.ratings[rawgId];
-  saveLibrary(); saveRatings();
+  delete state.ratings[rawgId]; saveLibrary(); saveRatings();
 }
 export function addToWishlist(game){
-  if (!inWishlist(game.id)) {
-    state.wishlist.unshift(minifyGame(game));
-    saveWishlist();
-  }
+  if (!inWishlist(game.id)) { state.wishlist.unshift(minifyGame(game)); saveWishlist(); }
 }
 export function removeFromWishlist(rawgId){
-  state.wishlist = state.wishlist.filter(g => g.id !== rawgId);
-  saveWishlist();
+  state.wishlist = state.wishlist.filter(g => g.id !== rawgId); saveWishlist();
 }
-export function setRating(rawgId, value){
-  state.ratings[rawgId] = value;
-  saveRatings();
-}
+export function setRating(rawgId, value){ state.ratings[rawgId] = value; saveRatings(); }
 export function getRating(rawgId){ return state.ratings[rawgId] || 0; }
 
 export function addDiaryEntry({rawgId, title, note}){
@@ -75,10 +61,11 @@ export function removeDiaryEntry(entryId){
 function minifyGame(g){
   return {
     id: g.id,
+    provider: g.provider || 'rawg',
     name: g.name,
     released: g.released || null,
     metacritic: g.metacritic || null,
     background_image: g.background_image || null,
-    platforms: g.platforms?.map(p => p.platform?.name || p.name) || []
+    platforms: g.platforms?.map(p => p.platform?.name || p.name || p) || []
   };
 }

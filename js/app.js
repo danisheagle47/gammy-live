@@ -1,6 +1,6 @@
 import { state, addToLibrary, removeFromLibrary, addToWishlist, removeFromWishlist, inLibrary, inWishlist, setRating, getRating, addDiaryEntry } from './state.js';
 import { t, applyTranslations, switchLang, translateText, getLang } from './i18n.js';
-import { toast, bindModal, showModal, hideModal, createCard, platformChip, starRating } from './ui.js';
+import { toast, bindModal, showModal, hideModal, createCard, platformChip, starRating, initButtonFX } from './ui.js';
 import { searchGames, getGameDetails, getUpcoming, getCalendar, getNews } from './api.js';
 import { startBackground } from './bg.js';
 
@@ -13,7 +13,6 @@ const modalSearch = document.getElementById('modal-search');
 const modalDetail = document.getElementById('modal-detail');
 const resultsGrid = document.getElementById('searchResults');
 
-// Detail modal elements
 const detailCover = document.getElementById('detailCover');
 const detailTitle = document.getElementById('modal-detail-title');
 const detailDeveloper = document.getElementById('detailDeveloper');
@@ -27,11 +26,11 @@ const personalRating = document.getElementById('personalRating');
 
 let currentDetail = null;
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
   startBackground();
   bindModal('modal-search');
   bindModal('modal-detail');
+  initButtonFX();
   applyTranslations();
   initLangSwitch();
   initNav();
@@ -43,8 +42,7 @@ function initLangSwitch(){
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       switchLang(btn.dataset.lang).then(() => {
-        route(); // rerender
-        toast(btn.dataset.lang === 'it' ? 'Lingua: Italiano' : 'Language: English');
+        route(); toast(btn.dataset.lang === 'it' ? 'Lingua: Italiano' : 'Language: English');
       });
     });
   });
@@ -90,17 +88,18 @@ function initSearch(){
 }
 
 async function doSearch(q){
-  resultsGrid.innerHTML = '';
+  resultsGrid.innerHTML = `<div style="opacity:.7">...</div>`;
   showModal('modal-search');
   try {
     const data = await searchGames(q);
+    resultsGrid.innerHTML = '';
     if (!data.results?.length){
       resultsGrid.innerHTML = `<div style="opacity:.7">${getLang()==='it'?'Nessun risultato.':'No results.'}</div>`;
       return;
     }
     data.results.forEach(game => {
       const card = createCard(game, {
-        onClick: () => openDetail(game.id)
+        onClick: () => openDetail(game)
       });
       resultsGrid.appendChild(card);
     });
@@ -109,8 +108,7 @@ async function doSearch(q){
   }
 }
 
-// Detail modal logic
-async function openDetail(id){
+async function openDetail(ref){
   hideModal('modal-search');
   currentDetail = null;
   detailTitle.textContent = '...';
@@ -125,53 +123,50 @@ async function openDetail(id){
   showModal('modal-detail');
 
   try {
-    const data = await getGameDetails(id);
+    const data = await getGameDetails(ref);
     currentDetail = data;
     detailTitle.textContent = data.name;
     detailCover.src = data.background_image || 'https://placehold.co/1280x720/0D0D1A/EEE?text=Gammy';
     detailDeveloper.textContent = data.developers?.[0]?.name || '—';
     detailRelease.textContent = data.released || '—';
     detailPlatforms.innerHTML = '';
-    const platforms = (data.parent_platforms?.map(p => p.platform.name) || data.platforms?.map(p=>p.platform?.name) || []);
+    const platforms = (data.platforms || []).map(p => p.platform?.name || p.name || p);
     platforms.forEach(p => detailPlatforms.appendChild(platformChip(p)));
-    detailMetacritic.textContent = data.metacritic ?? '—';
+    detailMetacritic.textContent = (data.metacritic ?? '—');
 
-    let desc = strip(data.description_raw || data.description || '');
-    if (desc) {
-      const translated = await translateText(desc, getLang());
+    const rawDesc = (data.description_raw || data.description || '').trim();
+    if (rawDesc) {
+      const translated = await translateText(strip(rawDesc), getLang());
       detailDescription.textContent = translated;
     } else {
       detailDescription.textContent = getLang()==='it' ? 'Nessuna descrizione disponibile.' : 'No description available.';
     }
 
-    btnAddLibrary.textContent = inLibrary(id) ? (getLang()==='it'?'Nella Libreria':'In Library') : t('detail.addLibrary');
-    btnAddWishlist.textContent = inWishlist(id) ? (getLang()==='it'?'Nella Wishlist':'In Wishlist') : t('detail.addWishlist');
-
+    // Buttons
     btnAddLibrary.disabled = false; btnAddWishlist.disabled = false;
+    syncAddButtons();
 
     btnAddLibrary.onclick = () => {
-      if (!inLibrary(id)) {
+      if (!inLibrary(data.id)) {
         addToLibrary(data);
         toast(getLang()==='it'?'Aggiunto alla Libreria':'Added to Library');
       } else {
-        removeFromLibrary(id);
+        removeFromLibrary(data.id);
         toast(getLang()==='it'?'Rimosso dalla Libreria':'Removed from Library');
       }
-      btnAddLibrary.textContent = inLibrary(id) ? (getLang()==='it'?'Nella Libreria':'In Library') : t('detail.addLibrary');
-      // enable rating only if in library
-      renderPersonalRating();
+      syncAddButtons(); renderPersonalRating();
       if (location.hash === '#/library') renderLibrary();
     };
 
     btnAddWishlist.onclick = () => {
-      if (!inWishlist(id)) {
+      if (!inWishlist(data.id)) {
         addToWishlist(data);
         toast(getLang()==='it'?'Aggiunto alla Wishlist':'Added to Wishlist');
       } else {
-        removeFromWishlist(id);
+        removeFromWishlist(data.id);
         toast(getLang()==='it'?'Rimosso dalla Wishlist':'Removed from Wishlist');
       }
-      btnAddWishlist.textContent = inWishlist(id) ? (getLang()==='it'?'Nella Wishlist':'In Wishlist') : t('detail.addWishlist');
+      syncAddButtons();
       if (location.hash === '#/wishlist') renderWishlist();
     };
 
@@ -180,7 +175,11 @@ async function openDetail(id){
     detailDescription.textContent = 'Error loading details.';
   }
 }
-
+function syncAddButtons(){
+  if (!currentDetail) return;
+  btnAddLibrary.textContent = inLibrary(currentDetail.id) ? (getLang()==='it'?'Nella Libreria':'In Library') : t('detail.addLibrary');
+  btnAddWishlist.textContent = inWishlist(currentDetail.id) ? (getLang()==='it'?'Nella Wishlist':'In Wishlist') : t('detail.addWishlist');
+}
 function renderPersonalRating(){
   personalRating.innerHTML = '';
   if (currentDetail && inLibrary(currentDetail.id)) {
@@ -198,7 +197,7 @@ function renderPersonalRating(){
   }
 }
 
-/* Views */
+/* Views (invariati, con toasts e ricarichi) */
 function renderLibrary(){
   root.innerHTML = `<h2 data-i18n="library.title">La tua Libreria</h2><div class="grid" id="libGrid"></div>`;
   const grid = document.getElementById('libGrid');
@@ -281,8 +280,7 @@ function renderDiary(){
       body.appendChild(title); body.appendChild(meta); body.appendChild(text);
       const actions = document.createElement('div'); actions.style.marginTop='8px'; actions.style.display='flex'; actions.style.gap='8px'; actions.appendChild(openBtn);
       body.appendChild(actions);
-      card.appendChild(removeBtn);
-      card.appendChild(body);
+      card.appendChild(removeBtn); card.appendChild(body);
       list.appendChild(card);
     });
   }
@@ -297,14 +295,7 @@ async function renderUpcoming(){
     grid.innerHTML = '';
     data.forEach(game => {
       const card = createCard(game, {
-        onClick: () => {
-          // Search by RAWG id unknown; we'll open via name search detail attempt:
-          searchGames(game.name).then(res => {
-            const match = res.results?.find(g => g.name.toLowerCase()===game.name.toLowerCase()) || res.results?.[0];
-            if (match) openDetail(match.id);
-          });
-        },
-        showMeta:true
+        onClick: () => openDetail({ name: game.name }) // fallback by name
       });
       grid.appendChild(card);
     });
@@ -318,14 +309,13 @@ async function renderCalendar(){
   const ym = new URLSearchParams(location.hash.split('?')[1]).get('m') || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const [yy,mm] = ym.split('-').map(x=>parseInt(x,10));
   const first = new Date(yy, mm-1, 1);
-  const startDay = new Date(first); startDay.setDate(1);
   const last = new Date(yy, mm, 0);
   root.innerHTML = `
     <h2 data-i18n="calendar.title">Calendario Uscite</h2>
     <div class="glass" style="padding:10px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
-      <button id="prevM" class="secondary-btn">${t('calendar.prev')}</button>
+      <button id="prevM" class="secondary-btn">«</button>
       <div><strong>${first.toLocaleDateString(undefined, { month:'long', year:'numeric' })}</strong></div>
-      <button id="nextM" class="secondary-btn">${t('calendar.next')}</button>
+      <button id="nextM" class="secondary-btn">»</button>
     </div>
     <div id="calGrid" class="grid" style="grid-template-columns: repeat(7, 1fr)"></div>
   `;
@@ -341,7 +331,7 @@ async function renderCalendar(){
   const calGrid = document.getElementById('calGrid');
   calGrid.innerHTML = `<div style="grid-column: span 7; opacity:.7">Loading...</div>`;
   try {
-    const data = await getCalendar(ym); // { days: { 'YYYY-MM-DD': [games] } }
+    const data = await getCalendar(ym);
     calGrid.innerHTML = '';
     const dow = (first.getDay() + 6) % 7; // Monday=0
     for (let i=0; i<dow; i++){
@@ -357,12 +347,7 @@ async function renderCalendar(){
         const item = document.createElement('div'); item.className='platform-chip';
         item.style.justifyContent='space-between'; item.style.width='100%';
         item.innerHTML = `<span>${escapeHtml(g.name)}</span><span style="opacity:.8">${(g.platforms||[]).slice(0,2).join(', ')}</span>`;
-        item.addEventListener('click', () => {
-          searchGames(g.name).then(res => {
-            const match = res.results?.find(x => x.name.toLowerCase()===g.name.toLowerCase()) || res.results?.[0];
-            if (match) openDetail(match.id);
-          });
-        });
+        item.addEventListener('click', () => openDetail({ name: g.name }));
         list.appendChild(item);
       });
       if ((data.days?.[dateStr] || []).length > 4){

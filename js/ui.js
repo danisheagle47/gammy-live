@@ -7,6 +7,24 @@ export function toast(msg){
   setTimeout(() => el.classList.add('hidden'), 2600);
 }
 
+/* Ripple effect per tutti i bottoni */
+export function initButtonFX(){
+  if (initButtonFX._once) return; initButtonFX._once = true;
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.primary-btn,.secondary-btn,.icon-btn');
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 620);
+  });
+}
+
 export function bindModal(rootId){
   const root = document.getElementById(rootId);
   root.addEventListener('click', (e) => {
@@ -23,7 +41,7 @@ export function platformChip(name){
   return div;
 }
 function platformIcon(name){
-  const n = name.toLowerCase();
+  const n = (name||'').toLowerCase();
   if (n.includes('playstation')) return '🎮';
   if (n.includes('xbox')) return '🕹️';
   if (n.includes('pc') || n.includes('windows') ) return '💻';
@@ -57,7 +75,7 @@ export function createCard(game, {onClick, onRemove, removable=false, showMeta=t
   body.appendChild(title);
   if (showMeta){
     const meta = document.createElement('div'); meta.className='meta';
-    const date = (game.released || game.first_release_date) ? formatDate(game.released || (new Date(game.first_release_date*1000)).toISOString().slice(0,10)) : '—';
+    const date = game.released ? formatDate(game.released) : (game.first_release_date ? formatDate(new Date(game.first_release_date*1000).toISOString().slice(0,10)) : '—');
     meta.textContent = `${date}${game.metacritic ? ` • MC ${game.metacritic}`:''}`;
     body.appendChild(meta);
   }
