@@ -18,12 +18,13 @@ const translations = {
         library: {
             title: 'La Mia Libreria',
             empty: 'La tua libreria è vuota',
-            emptyDesc: 'Inizia cercando i tuoi giochi preferiti e aggiungili alla tua collezione!'
+            emptyDesc: 'Inizia ad aggiungere giochi dalla ricerca!',
+            yourRating: 'La tua valutazione'
         },
         wishlist: {
             title: 'La Mia Wishlist',
             empty: 'La tua wishlist è vuota',
-            emptyDesc: 'Aggiungi i giochi che desideri acquistare!'
+            emptyDesc: 'Aggiungi i giochi che desideri giocare!'
         },
         diary: {
             title: 'Diario di Gioco',
@@ -34,35 +35,42 @@ const translations = {
             titlePlaceholder: 'Titolo della sessione',
             contentPlaceholder: 'Racconta la tua esperienza...',
             save: 'Salva Nota',
-            delete: 'Elimina'
+            addButton: '+ Aggiungi Nota'
         },
         upcoming: {
             title: 'Giochi in Uscita',
-            loading: 'Caricamento...'
+            mostAnticipated: 'I Più Attesi'
         },
         calendar: {
             title: 'Calendario Uscite',
             months: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
                      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
-            days: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+            days: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+            prev: '← Precedente',
+            next: 'Successivo →'
         },
         news: {
             title: 'Ultime Notizie',
             readMore: 'Leggi di più'
         },
-        game: {
+        gameDetail: {
             addToLibrary: 'Aggiungi alla Libreria',
             addToWishlist: 'Aggiungi alla Wishlist',
             removeFromLibrary: 'Rimuovi dalla Libreria',
             removeFromWishlist: 'Rimuovi dalla Wishlist',
-            inLibrary: 'Nella Libreria',
-            inWishlist: 'Nella Wishlist',
-            platforms: 'Piattaforme',
-            releaseDate: 'Data di Uscita',
             developer: 'Sviluppatore',
+            releaseDate: 'Data di Uscita',
+            platforms: 'Piattaforme',
             metacritic: 'Metacritic',
+            rating: 'Valutazione',
+            description: 'Descrizione',
             yourRating: 'La Tua Valutazione',
-            description: 'Descrizione'
+            notAvailable: 'Non disponibile'
+        },
+        common: {
+            loading: 'Caricamento...',
+            error: 'Si è verificato un errore',
+            close: 'Chiudi'
         }
     },
     en: {
@@ -83,12 +91,13 @@ const translations = {
         library: {
             title: 'My Library',
             empty: 'Your library is empty',
-            emptyDesc: 'Start by searching for your favorite games and add them to your collection!'
+            emptyDesc: 'Start adding games from search!',
+            yourRating: 'Your rating'
         },
         wishlist: {
             title: 'My Wishlist',
             empty: 'Your wishlist is empty',
-            emptyDesc: 'Add games you want to purchase!'
+            emptyDesc: 'Add games you want to play!'
         },
         diary: {
             title: 'Game Diary',
@@ -99,53 +108,57 @@ const translations = {
             titlePlaceholder: 'Session title',
             contentPlaceholder: 'Tell us about your experience...',
             save: 'Save Entry',
-            delete: 'Delete'
+            addButton: '+ Add Entry'
         },
         upcoming: {
             title: 'Upcoming Games',
-            loading: 'Loading...'
+            mostAnticipated: 'Most Anticipated'
         },
         calendar: {
             title: 'Release Calendar',
-            months: ['January', 'February', 'March', 'April', 'May', 'June', 
+            months: ['January', 'February', 'March', 'April', 'May', 'June',
                      'July', 'August', 'September', 'October', 'November', 'December'],
-            days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+            days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            prev: '← Previous',
+            next: 'Next →'
         },
         news: {
             title: 'Latest News',
             readMore: 'Read more'
         },
-        game: {
+        gameDetail: {
             addToLibrary: 'Add to Library',
             addToWishlist: 'Add to Wishlist',
             removeFromLibrary: 'Remove from Library',
             removeFromWishlist: 'Remove from Wishlist',
-            inLibrary: 'In Library',
-            inWishlist: 'In Wishlist',
-            platforms: 'Platforms',
-            releaseDate: 'Release Date',
             developer: 'Developer',
+            releaseDate: 'Release Date',
+            platforms: 'Platforms',
             metacritic: 'Metacritic',
+            rating: 'Rating',
+            description: 'Description',
             yourRating: 'Your Rating',
-            description: 'Description'
+            notAvailable: 'Not available'
+        },
+        common: {
+            loading: 'Loading...',
+            error: 'An error occurred',
+            close: 'Close'
         }
     }
 };
 
 class I18n {
     constructor() {
-        this.currentLang = localStorage.getItem('gammy_language') || 'it';
+        this.currentLang = localStorage.getItem('gammy-lang') || 'it';
         this.init();
     }
     
     init() {
-        // Set active language button
+        // Imposta lingua attiva nei pulsanti
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
-            
-            btn.addEventListener('click', () => {
-                this.setLanguage(btn.dataset.lang);
-            });
+            btn.addEventListener('click', () => this.setLanguage(btn.dataset.lang));
         });
         
         this.translate();
@@ -153,7 +166,7 @@ class I18n {
     
     setLanguage(lang) {
         this.currentLang = lang;
-        localStorage.setItem('gammy_language', lang);
+        localStorage.setItem('gammy-lang', lang);
         
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
@@ -161,12 +174,15 @@ class I18n {
         
         this.translate();
         
-        // Trigger custom event for language change
-        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
+        // Ricarica la pagina corrente per aggiornare i contenuti dinamici
+        const currentPage = document.querySelector('.nav-link.active')?.dataset.page || 'library';
+        if (window.app) {
+            window.app.loadPage(currentPage);
+        }
     }
     
     translate() {
-        // Translate text content
+        // Traduci elementi con data-i18n
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.dataset.i18n;
             const translation = this.get(key);
@@ -175,7 +191,7 @@ class I18n {
             }
         });
         
-        // Translate placeholders
+        // Traduci placeholder
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
             const key = element.dataset.i18nPlaceholder;
             const translation = this.get(key);
@@ -190,14 +206,10 @@ class I18n {
         let value = translations[this.currentLang];
         
         for (const k of keys) {
-            if (value && value[k]) {
-                value = value[k];
-            } else {
-                return null;
-            }
+            value = value?.[k];
         }
         
-        return value;
+        return value || key;
     }
     
     getLang() {
@@ -205,5 +217,5 @@ class I18n {
     }
 }
 
-// Export instance
-const i18n = new I18n();
+// Inizializza i18n globalmente
+window.i18n = new I18n();

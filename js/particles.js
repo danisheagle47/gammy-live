@@ -1,10 +1,12 @@
-// Animazione particelle nebula
-class NebulaParticles {
+// Animazione particelle nebulosa
+class ParticleSystem {
     constructor() {
         this.canvas = document.getElementById('particles-canvas');
+        if (!this.canvas) return;
+        
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
-        this.particleCount = 50;
+        this.particleCount = 80;
         
         this.resize();
         this.init();
@@ -24,9 +26,9 @@ class NebulaParticles {
             this.particles.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                size: Math.random() * 3 + 1,
-                speedX: (Math.random() - 0.5) * 0.5,
-                speedY: (Math.random() - 0.5) * 0.5,
+                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
                 color: this.getRandomColor()
             });
         }
@@ -34,10 +36,10 @@ class NebulaParticles {
     
     getRandomColor() {
         const colors = [
-            'rgba(160, 32, 240, 0.6)',   // Purple
-            'rgba(217, 0, 119, 0.6)',    // Magenta
-            'rgba(100, 150, 255, 0.4)',  // Blue
-            'rgba(200, 100, 255, 0.5)'   // Light purple
+            'rgba(160, 32, 240, 0.6)',
+            'rgba(217, 0, 119, 0.6)',
+            'rgba(138, 43, 226, 0.6)',
+            'rgba(255, 0, 255, 0.4)'
         ];
         return colors[Math.floor(Math.random() * colors.length)];
     }
@@ -47,8 +49,8 @@ class NebulaParticles {
         
         this.particles.forEach((particle, index) => {
             // Update position
-            particle.x += particle.speedX;
-            particle.y += particle.speedY;
+            particle.x += particle.vx;
+            particle.y += particle.vy;
             
             // Wrap around edges
             if (particle.x < 0) particle.x = this.canvas.width;
@@ -56,28 +58,24 @@ class NebulaParticles {
             if (particle.y < 0) particle.y = this.canvas.height;
             if (particle.y > this.canvas.height) particle.y = 0;
             
-            // Draw particle with glow
+            // Draw particle
             this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
             this.ctx.fillStyle = particle.color;
-            this.ctx.shadowBlur = 15;
-            this.ctx.shadowColor = particle.color;
             this.ctx.fill();
-            this.ctx.shadowBlur = 0;
             
             // Draw connections
             for (let j = index + 1; j < this.particles.length; j++) {
-                const other = this.particles[j];
-                const dx = particle.x - other.x;
-                const dy = particle.y - other.y;
+                const dx = this.particles[j].x - particle.x;
+                const dy = this.particles[j].y - particle.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance < 150) {
                     this.ctx.beginPath();
-                    this.ctx.strokeStyle = `rgba(160, 32, 240, ${0.2 * (1 - distance / 150)})`;
-                    this.ctx.lineWidth = 0.5;
+                    this.ctx.strokeStyle = `rgba(160, 32, 240, ${0.15 * (1 - distance / 150)})`;
+                    this.ctx.lineWidth = 1;
                     this.ctx.moveTo(particle.x, particle.y);
-                    this.ctx.lineTo(other.x, other.y);
+                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
                     this.ctx.stroke();
                 }
             }
@@ -87,7 +85,7 @@ class NebulaParticles {
     }
 }
 
-// Initialize particles quando il DOM è pronto
+// Inizializza quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', () => {
-    new NebulaParticles();
+    new ParticleSystem();
 });

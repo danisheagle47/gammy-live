@@ -1,4 +1,3 @@
-// Vercel Serverless Function - Search Games using RAWG API
 export default async function handler(req, res) {
     const { q } = req.query;
     
@@ -8,21 +7,15 @@ export default async function handler(req, res) {
     
     try {
         const response = await fetch(
-            `https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}&page_size=20`,
-            {
-                headers: {
-                    'User-Agent': 'Gammy/1.0'
-                }
-            }
+            `https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}&page_size=20`
         );
         
         if (!response.ok) {
-            throw new Error('RAWG API error');
+            throw new Error('RAWG API request failed');
         }
         
         const data = await response.json();
         
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
         res.status(200).json({
             results: data.results || []
         });

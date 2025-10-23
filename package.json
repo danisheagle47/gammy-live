@@ -1,0 +1,13 @@
+{
+  "name": "gammy",
+  "version": "1.0.0",
+  "description": "Tracker di videogiochi personale",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

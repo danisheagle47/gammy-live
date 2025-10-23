@@ -1,12 +1,12 @@
-// API Service per chiamate al backend
-class APIService {
+// Gestione chiamate API
+class API {
     constructor() {
-        this.baseURL = window.location.origin;
+        this.baseURL = '/api';
     }
     
     async searchGames(query) {
         try {
-            const response = await fetch(`${this.baseURL}/api/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`${this.baseURL}/search?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Search failed');
             return await response.json();
         } catch (error) {
@@ -15,9 +15,9 @@ class APIService {
         }
     }
     
-    async getGameDetails(gameId) {
+    async getGameDetails(id) {
         try {
-            const response = await fetch(`${this.baseURL}/api/game-details?id=${gameId}`);
+            const response = await fetch(`${this.baseURL}/game-details?id=${id}`);
             if (!response.ok) throw new Error('Failed to fetch game details');
             return await response.json();
         } catch (error) {
@@ -28,7 +28,7 @@ class APIService {
     
     async getUpcomingGames() {
         try {
-            const response = await fetch(`${this.baseURL}/api/upcoming`);
+            const response = await fetch(`${this.baseURL}/upcoming`);
             if (!response.ok) throw new Error('Failed to fetch upcoming games');
             return await response.json();
         } catch (error) {
@@ -39,7 +39,7 @@ class APIService {
     
     async getCalendar(year, month) {
         try {
-            const response = await fetch(`${this.baseURL}/api/calendar?year=${year}&month=${month}`);
+            const response = await fetch(`${this.baseURL}/calendar?year=${year}&month=${month}`);
             if (!response.ok) throw new Error('Failed to fetch calendar');
             return await response.json();
         } catch (error) {
@@ -50,7 +50,7 @@ class APIService {
     
     async getNews() {
         try {
-            const response = await fetch(`${this.baseURL}/api/news`);
+            const response = await fetch(`${this.baseURL}/news`);
             if (!response.ok) throw new Error('Failed to fetch news');
             return await response.json();
         } catch (error) {
@@ -61,9 +61,11 @@ class APIService {
     
     async translateText(text, targetLang) {
         try {
-            const response = await fetch(`${this.baseURL}/api/translate`, {
+            const response = await fetch(`${this.baseURL}/translate`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ text, targetLang })
             });
             if (!response.ok) throw new Error('Translation failed');
@@ -71,9 +73,9 @@ class APIService {
             return data.translatedText;
         } catch (error) {
             console.error('Translation error:', error);
-            return text; // Return original text if translation fails
+            return text;
         }
     }
 }
 
-const apiService = new APIService();
+window.api = new API();

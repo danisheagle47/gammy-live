@@ -1,4 +1,3 @@
-// Vercel Serverless Function - Translate Text using MyMemory API
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -7,36 +6,41 @@ export default async function handler(req, res) {
     const { text, targetLang } = req.body;
     
     if (!text || !targetLang) {
-        return res.status(400).json({ error: 'Text and target language required' });
+        return res.status(400).json({ error: 'Text and targetLang required' });
     }
     
-    // Limit text length to avoid API limits
-    const truncatedText = text.substring(0, 500);
+    // Se il testo è troppo lungo, tronca per evitare problemi con l'API
+    const maxLength = 500;
+    const textToTranslate = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     
     try {
-        const sourceLang = targetLang === 'it' ? 'en' : 'it';
+        const langPair = targetLang === 'it' ? 'en|it' : 'it|en';
         
         const response = await fetch(
-            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(truncatedText)}&langpair=${sourceLang}|${targetLang}`,
-            {
-                headers: {
-                    'User-Agent': 'Gammy/1.0'
-                }
-            }
+            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=${langPair}`
         );
         
         if (!response.ok) {
-            throw new Error('Translation API error');
+            throw new Error('Translation API request failed');
         }
         
         const data = await response.json();
         
-        res.setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate');
-        res.status(200).json({
-            translatedText: data.responseData?.translatedText || text
-        });
+        if (data.responseStatus === 200) {
+            res.status(200).json({
+                translatedText: data.responseData.translatedText
+            });
+        } else {
+            // Se la traduzione fallisce, restituisci il testo originale
+            res.status(200).json({
+                translatedText: text
+            });
+        }
     } catch (error) {
         console.error('Translation error:', error);
-        res.status(200).json({ translatedText: text });
+        // In caso di errore, restituisci il testo originale
+        res.status(200).json({
+            translatedText: text
+        });
     }
 }
