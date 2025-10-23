@@ -1,121 +1,111 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gammy - Il Tuo Universo di Gioco</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gammy — Nebula Game Tracker</title>
+  <link rel="stylesheet" href="/styles.css"/>
+  <link rel="preconnect" href="https://images.igdb.com" crossorigin>
+  <meta name="theme-color" content="#0D0D1A"/>
 </head>
 <body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="bg-nebula-overlay"></div>
 
-    <div id="background-particles"></div>
-
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header"><h1>Gammy</h1></div>
-            <nav class="sidebar-nav">
-                <p class="nav-title" data-t="my_space">Il Mio Spazio</p>
-                <ul>
-                    <li><a href="#" class="nav-link active" data-section="libreria"><i class="fa-solid fa-gamepad fa-fw"></i> <span data-t="library">Libreria</span></a></li>
-                    <li><a href="#" class="nav-link" data-section="diario"><i class="fa-solid fa-book-open fa-fw"></i> <span data-t="journal">Diario</span></a></li>
-                    <li><a href="#" class="nav-link" data-section="wishlist"><i class="fa-solid fa-star fa-fw"></i> <span data-t="wishlist">Wishlist</span></a></li>
-                </ul>
-                <p class="nav-title" data-t="discover">Scopri</p>
-                <ul>
-                    <li><a href="#" class="nav-link" data-section="uscite"><i class="fa-solid fa-rocket fa-fw"></i> <span data-t="upcoming">In Uscita</span></a></li>
-                    <li><a href="#" class="nav-link" data-section="calendario"><i class="fa-solid fa-calendar-days fa-fw"></i> <span data-t="calendar">Calendario</span></a></li>
-                    <li><a href="#" class="nav-link" data-section="notizie"><i class="fa-solid fa-newspaper fa-fw"></i> <span data-t="news">Notizie</span></a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="language-switcher">
-                    <a href="#" class="lang-switch active" data-lang="it">IT</a>
-                    <span>|</span>
-                    <a href="#" class="lang-switch" data-lang="en">EN</a>
-                </div>
-            </div>
-        </aside>
-
-        <main class="content">
-            <section id="libreria" class="page active">
-                <div class="page-header">
-                    <h2 data-t="my_library_title"><i class="fa-solid fa-gamepad"></i> La Mia Libreria</h2>
-                    <div class="search-container">
-                        <input type="text" id="search-input" data-t-placeholder="search_placeholder" placeholder="Cerca un gioco...">
-                        <button id="search-btn" class="btn-primary"><i class="fa-solid fa-search"></i></button>
-                    </div>
-                </div>
-                <div id="library-grid" class="game-grid"></div>
-            </section>
-            <section id="diario" class="page">
-                <div class="page-header">
-                    <h2 data-t="journal_title"><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
-                    <button id="add-journal-entry-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> <span data-t="new_entry">Nuova Voce</span></button>
-                </div>
-                <div id="journal-list" class="journal-list"></div>
-            </section>
-             <section id="wishlist" class="page">
-                <h2 data-t="wishlist_title"><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
-                <div id="wishlist-grid" class="game-grid"></div>
-            </section>
-            <section id="uscite" class="page">
-                <h2 data-t="upcoming_title"><i class="fa-solid fa-rocket"></i> Giochi Più Attesi</h2>
-                <div id="upcoming-grid" class="game-grid"></div>
-            </section>
-            <section id="calendario" class="page">
-                 <div class="page-header">
-                    <h2 data-t="calendar_title"><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
-                    <div id="calendar-nav">
-                        <button id="prev-month-btn">&lt;</button>
-                        <h3 id="calendar-month-year"></h3>
-                        <button id="next-month-btn">&gt;</button>
-                    </div>
-                </div>
-                <div id="calendar-grid-container"></div>
-            </section>
-            <section id="notizie" class="page">
-                <h2 data-t="news_title"><i class="fa-solid fa-newspaper"></i> Notizie dal Mondo Gaming</h2>
-                <div id="news-feed" class="news-feed"></div>
-            </section>
-        </main>
+  <aside class="sidebar glass">
+    <div class="brand">
+      <span class="logo">🎮</span>
+      <span class="brand-name">Gammy</span>
     </div>
-    
-    <!-- MODALS -->
-    <div id="modal-backdrop" class="modal-backdrop"></div>
-    <div id="search-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal-btn">&times;</span>
-            <h3 data-t="search_results_title">Risultati Ricerca</h3>
-            <div id="search-results" class="game-grid"></div>
+
+    <nav class="nav">
+      <a href="#/library" data-i18n="nav.library" class="nav-link active">Libreria</a>
+      <a href="#/wishlist" data-i18n="nav.wishlist" class="nav-link">Wishlist</a>
+      <a href="#/diary" data-i18n="nav.diary" class="nav-link">Diario</a>
+      <div class="nav-sep"></div>
+      <a href="#/upcoming" data-i18n="nav.upcoming" class="nav-link">In Uscita</a>
+      <a href="#/calendar" data-i18n="nav.calendar" class="nav-link">Calendario</a>
+      <a href="#/news" data-i18n="nav.news" class="nav-link">Notizie</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang="it">IT</button>
+        <span class="sep">|</span>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <div class="foot-note">Nebula Mode</div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar glass">
+      <form id="searchForm" class="searchbar">
+        <input id="searchInput" type="search" placeholder="Cerca giochi..." data-i18n-placeholder="search.placeholder" autocomplete="off"/>
+        <button class="primary-btn" type="submit" data-i18n="search.search">Cerca</button>
+      </form>
+      <div class="actions">
+        <button id="openSearch" class="icon-btn" title="Search" aria-label="Search">🔎</button>
+      </div>
+    </header>
+
+    <section id="view-root" class="view"></section>
+  </main>
+
+  <!-- Modal: Search Results -->
+  <div id="modal-search" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-search-title">
+    <div class="modal-overlay" data-close="true"></div>
+    <div class="modal-card glass">
+      <div class="modal-header">
+        <h3 id="modal-search-title" data-i18n="search.results">Risultati</h3>
+        <button class="icon-btn close" data-close="true">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="results-grid" id="searchResults"></div>
+        <div class="modal-footer">
+          <button class="secondary-btn" data-close="true" data-i18n="common.close">Chiudi</button>
         </div>
+      </div>
     </div>
-    <div id="game-detail-modal" class="modal"></div>
-    <div id="journal-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal-btn">&times;</span>
-            <h3 data-t="new_journal_entry_title">Nuova Voce del Diario</h3>
-            <form id="journal-form">
-                <div class="form-group">
-                    <label for="journal-game" data-t="game_label">Gioco:</label>
-                    <select id="journal-game" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="journal-title" data-t="session_title_label">Titolo sessione:</label>
-                    <input type="text" id="journal-title" required>
-                </div>
-                <div class="form-group">
-                    <label for="journal-notes" data-t="notes_label">Note:</label>
-                    <textarea id="journal-notes" rows="4" required></textarea>
-                </div>
-                <button type="submit" class="btn-primary"><span data-t="add_entry_btn">Aggiungi Voce</span></button>
-            </form>
-        </div>
-    </div>
+  </div>
 
-    <script src="script.js"></script>
+  <!-- Modal: Game Detail -->
+  <div id="modal-detail" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-detail-title">
+    <div class="modal-overlay" data-close="true"></div>
+    <div class="modal-card modal-detail glass">
+      <div class="detail-hero">
+        <img id="detailCover" alt="" />
+        <div class="hero-gradient"></div>
+      </div>
+      <div class="modal-header">
+        <h3 id="modal-detail-title">Game Title</h3>
+        <button class="icon-btn close" data-close="true">✖</button>
+      </div>
+      <div class="modal-body detail-body">
+        <div class="detail-meta">
+          <div class="meta-row"><span data-i18n="detail.developer">Sviluppatore</span> <strong id="detailDeveloper">—</strong></div>
+          <div class="meta-row"><span data-i18n="detail.release">Data di uscita</span> <strong id="detailRelease">—</strong></div>
+          <div class="meta-row platforms">
+            <span data-i18n="detail.platforms">Piattaforme</span>
+            <div id="detailPlatforms" class="platform-list"></div>
+          </div>
+          <div class="meta-row"><span>Metacritic</span> <strong id="detailMetacritic">—</strong></div>
+        </div>
+        <div class="detail-desc">
+          <p id="detailDescription">—</p>
+        </div>
+        <div class="detail-actions">
+          <button id="btnAddLibrary" class="primary-btn" data-i18n="detail.addLibrary">Aggiungi alla Libreria</button>
+          <button id="btnAddWishlist" class="secondary-btn" data-i18n="detail.addWishlist">Aggiungi alla Wishlist</button>
+          <div id="personalRating" class="stars hidden" aria-label="Personal rating"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>
