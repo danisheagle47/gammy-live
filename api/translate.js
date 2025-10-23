@@ -1,19 +1,18 @@
-export default async function handler(req, res){
+module.exports = async function (req, res) {
   try {
-    const { to='it' } = req.query;
+    const { to = 'it' } = req.query;
     const { text } = await readJson(req);
-    if (!text) return res.status(400).json({ error:'Missing text' });
-    // MyMemory API - no key required for basic usage
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent('en|'+to)}`;
+    if (!text) return res.status(400).json({ error: 'Missing text' });
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent('en|' + to)}`;
     const r = await fetch(url);
     const j = await r.json();
     const translation = j?.responseData?.translatedText || text;
-    res.setHeader('Access-Control-Allow-Origin','*');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(200).json({ translation });
-  } catch (e){
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
-}
+};
 async function readJson(req) {
   const chunks = [];
   for await (const c of req) chunks.push(c);
