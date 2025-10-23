@@ -11,10 +11,5 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
-  ],
-  "env": {
-    "RAWG_API_KEY": "@rawg-api-key",
-    "TWITCH_CLIENT_ID": "@twitch-client-id",
-    "TWITCH_CLIENT_SECRET": "@twitch-client-secret"
-  }
+  ]
 }
