@@ -8,36 +8,44 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
+    <div id="background-particles"></div>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header"><h1>Gammy</h1></div>
             <nav class="sidebar-nav">
-                <p class="nav-title">IL MIO SPAZIO</p>
+                <p class="nav-title" data-t="my_space">Il Mio Spazio</p>
                 <ul>
-                    <li><a href="#" class="nav-link active" data-section="libreria"><i class="fa-solid fa-gamepad fa-fw"></i> Libreria</a></li>
-                    <li><a href="#" class="nav-link" data-section="diario"><i class="fa-solid fa-book-open fa-fw"></i> Diario</a></li>
-                    <li><a href="#" class="nav-link" data-section="wishlist"><i class="fa-solid fa-star fa-fw"></i> Wishlist</a></li>
+                    <li><a href="#" class="nav-link active" data-section="libreria"><i class="fa-solid fa-gamepad fa-fw"></i> <span data-t="library">Libreria</span></a></li>
+                    <li><a href="#" class="nav-link" data-section="diario"><i class="fa-solid fa-book-open fa-fw"></i> <span data-t="journal">Diario</span></a></li>
+                    <li><a href="#" class="nav-link" data-section="wishlist"><i class="fa-solid fa-star fa-fw"></i> <span data-t="wishlist">Wishlist</span></a></li>
                 </ul>
-                <p class="nav-title">SCOPRI</p>
+                <p class="nav-title" data-t="discover">Scopri</p>
                 <ul>
-                    <li><a href="#" class="nav-link" data-section="uscite"><i class="fa-solid fa-rocket fa-fw"></i> In Uscita</a></li>
-                    <li><a href="#" class="nav-link" data-section="calendario"><i class="fa-solid fa-calendar-days fa-fw"></i> Calendario</a></li>
-                    <li><a href="#" class="nav-link" data-section="notizie"><i class="fa-solid fa-newspaper fa-fw"></i> Notizie</a></li>
+                    <li><a href="#" class="nav-link" data-section="uscite"><i class="fa-solid fa-rocket fa-fw"></i> <span data-t="upcoming">In Uscita</span></a></li>
+                    <li><a href="#" class="nav-link" data-section="calendario"><i class="fa-solid fa-calendar-days fa-fw"></i> <span data-t="calendar">Calendario</span></a></li>
+                    <li><a href="#" class="nav-link" data-section="notizie"><i class="fa-solid fa-newspaper fa-fw"></i> <span data-t="news">Notizie</span></a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <!-- Toggle del tema rimosso -->
+                <div class="language-switcher">
+                    <a href="#" class="lang-switch active" data-lang="it">IT</a>
+                    <span>|</span>
+                    <a href="#" class="lang-switch" data-lang="en">EN</a>
+                </div>
             </div>
         </aside>
+
         <main class="content">
             <section id="libreria" class="page active">
                 <div class="page-header">
-                    <h2><i class="fa-solid fa-gamepad"></i> La Mia Libreria</h2>
+                    <h2 data-t="my_library_title"><i class="fa-solid fa-gamepad"></i> La Mia Libreria</h2>
                     <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Cerca un gioco...">
+                        <input type="text" id="search-input" data-t-placeholder="search_placeholder" placeholder="Cerca un gioco...">
                         <button id="search-btn" class="btn-primary"><i class="fa-solid fa-search"></i></button>
                     </div>
                 </div>
@@ -45,22 +53,22 @@
             </section>
             <section id="diario" class="page">
                 <div class="page-header">
-                    <h2><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
-                    <button id="add-journal-entry-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Nuova Voce</button>
+                    <h2 data-t="journal_title"><i class="fa-solid fa-book-open"></i> Diario di Gioco</h2>
+                    <button id="add-journal-entry-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> <span data-t="new_entry">Nuova Voce</span></button>
                 </div>
                 <div id="journal-list" class="journal-list"></div>
             </section>
              <section id="wishlist" class="page">
-                <h2><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
+                <h2 data-t="wishlist_title"><i class="fa-solid fa-star"></i> La Mia Wishlist</h2>
                 <div id="wishlist-grid" class="game-grid"></div>
             </section>
             <section id="uscite" class="page">
-                <h2><i class="fa-solid fa-rocket"></i> Giochi Più Attesi</h2>
+                <h2 data-t="upcoming_title"><i class="fa-solid fa-rocket"></i> Giochi Più Attesi</h2>
                 <div id="upcoming-grid" class="game-grid"></div>
             </section>
             <section id="calendario" class="page">
                  <div class="page-header">
-                    <h2><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
+                    <h2 data-t="calendar_title"><i class="fa-solid fa-calendar-days"></i> Calendario Uscite</h2>
                     <div id="calendar-nav">
                         <button id="prev-month-btn">&lt;</button>
                         <h3 id="calendar-month-year"></h3>
@@ -70,41 +78,44 @@
                 <div id="calendar-grid-container"></div>
             </section>
             <section id="notizie" class="page">
-                <h2><i class="fa-solid fa-newspaper"></i> Notizie dal Mondo Gaming</h2>
+                <h2 data-t="news_title"><i class="fa-solid fa-newspaper"></i> Notizie dal Mondo Gaming</h2>
                 <div id="news-feed" class="news-feed"></div>
             </section>
         </main>
     </div>
+    
+    <!-- MODALS -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="search-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal-btn">&times;</span>
-            <h3>Risultati Ricerca</h3>
-            <div id="search-results" class="game-grid search-results-grid"></div>
+            <h3 data-t="search_results_title">Risultati Ricerca</h3>
+            <div id="search-results" class="game-grid"></div>
         </div>
     </div>
     <div id="game-detail-modal" class="modal"></div>
     <div id="journal-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal-btn">&times;</span>
-            <h3>Nuova Voce del Diario</h3>
+            <h3 data-t="new_journal_entry_title">Nuova Voce del Diario</h3>
             <form id="journal-form">
                 <div class="form-group">
-                    <label for="journal-game">Gioco:</label>
+                    <label for="journal-game" data-t="game_label">Gioco:</label>
                     <select id="journal-game" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="journal-title">Titolo sessione:</label>
+                    <label for="journal-title" data-t="session_title_label">Titolo sessione:</label>
                     <input type="text" id="journal-title" required>
                 </div>
                 <div class="form-group">
-                    <label for="journal-notes">Note:</label>
+                    <label for="journal-notes" data-t="notes_label">Note:</label>
                     <textarea id="journal-notes" rows="4" required></textarea>
                 </div>
-                <button type="submit" class="btn-primary">Aggiungi Voce</button>
+                <button type="submit" class="btn-primary"><span data-t="add_entry_btn">Aggiungi Voce</span></button>
             </form>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

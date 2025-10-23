@@ -10,6 +10,7 @@ export default async function handler(request, response) {
         return response.status(500).json({ message: 'Chiave API di RAWG non configurata sul server.' });
     }
 
+    // Funzione interna per ottenere i dettagli di un singolo gioco, inclusa la trama
     const fetchGameDetails = async (slug) => {
         const detailUrl = `https://api.rawg.io/api/games/${slug}?key=${RAWG_API_KEY}`;
         try {
@@ -21,6 +22,7 @@ export default async function handler(request, response) {
         }
     };
 
+    // URL per la ricerca iniziale
     const searchUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(query)}&page_size=9`;
 
     try {
@@ -32,7 +34,7 @@ export default async function handler(request, response) {
         
         const searchData = await searchResponse.json();
 
-        // Per ogni gioco trovato, facciamo una chiamata aggiuntiva per ottenere la trama.
+        // Per ogni gioco trovato, facciamo una chiamata aggiuntiva per ottenere i dettagli
         const detailedResults = await Promise.all(searchData.results.map(async (game) => {
             const details = await fetchGameDetails(game.slug);
             return {

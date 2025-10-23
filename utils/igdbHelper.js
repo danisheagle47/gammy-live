@@ -1,3 +1,4 @@
+// utils/igdbHelper.js
 export async function makeIgdbRequest(endpoint, body) {
     const TWITCH_CLIENT_ID = process.env.VITE_TWITCH_CLIENT_ID;
     const TWITCH_ACCESS_TOKEN = process.env.VITE_TWITCH_ACCESS_TOKEN;
