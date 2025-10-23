@@ -1,4 +1,4 @@
-// Applicazione principale - Gammy 2.0
+// Applicazione principale - Gammy 2.0 con Statistiche
 class GammyApp {
     constructor() {
         this.library = JSON.parse(localStorage.getItem('gammy-library')) || [];
@@ -118,6 +118,8 @@ class GammyApp {
         window.i18n.translate();
     }
     
+    // ==================== LIBRARY CON STATISTICHE ====================
+    
     renderLibrary(container) {
         const title = window.i18n.get('library.title');
         
@@ -133,15 +135,189 @@ class GammyApp {
             return;
         }
         
+        // Statistics Section
+        const totalTime = window.stats.getTotalPlayTime();
+        const completedCount = window.stats.getCompletedGamesCount();
+        const avgSession = window.stats.getAverageSessionTime();
+        const streak = window.stats.getCurrentStreak();
+        
+        const statsHTML = `
+            <div class="statistics-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-label" data-i18n="stats.totalTime">${window.i18n.get('stats.totalTime')}</div>
+                        <div class="stat-value">${window.stats.formatTime(totalTime)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label" data-i18n="stats.gamesCompleted">${window.i18n.get('stats.gamesCompleted')}</div>
+                        <div class="stat-value">${completedCount}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label" data-i18n="stats.averageSession">${window.i18n.get('stats.averageSession')}</div>
+                        <div class="stat-value">${window.stats.formatTime(avgSession)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-label" data-i18n="stats.currentStreak">${window.i18n.get('stats.currentStreak')}</div>
+                        <div class="stat-value">${streak} ${window.i18n.get('stats.days')}</div>
+                    </div>
+                </div>
+                
+                <!-- Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title" data-i18n="stats.chart">${window.i18n.get('stats.chart')}</h3>
+                        <div class="chart-filters">
+                            <button class="chart-filter-btn" data-period="day" data-i18n="stats.day">${window.i18n.get('stats.day')}</button>
+                            <button class="chart-filter-btn active" data-period="week" data-i18n="stats.week">${window.i18n.get('stats.week')}</button>
+                            <button class="chart-filter-btn" data-period="month" data-i18n="stats.month">${window.i18n.get('stats.month')}</button>
+                            <button class="chart-filter-btn" data-period="year" data-i18n="stats.year">${window.i18n.get('stats.year')}</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="stats-chart"></div>
+                </div>
+                
+                <!-- Session Tracker -->
+                <div class="session-tracker">
+                    <div class="tracker-header">
+                        <h3 class="tracker-title" data-i18n="stats.activeSession">${window.i18n.get('stats.activeSession')}</h3>
+                        <button class="start-session-btn" id="toggle-session-btn">
+                            ${window.stats.getActiveSession() ? window.i18n.get('stats.stopSession') : window.i18n.get('stats.startSession')}
+                        </button>
+                    </div>
+                    <div id="active-session-display"></div>
+                </div>
+            </div>
+        `;
+        
         const gamesHTML = this.library.map(game => this.createGameCard(game, true)).join('');
         
         container.innerHTML = `
             <h1 class="page-title">${title}</h1>
+            ${statsHTML}
             <div class="games-grid">
                 ${gamesHTML}
             </div>
         `;
+        
+        // Setup chart filters
+        document.querySelectorAll('.chart-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.renderChart(btn.dataset.period);
+            });
+        });
+        
+        // Setup session toggle
+        document.getElementById('toggle-session-btn').addEventListener('click', () => {
+            this.toggleSession();
+        });
+        
+        // Render initial chart
+        this.renderChart('week');
+        this.updateActiveSessionDisplay();
     }
+    
+    renderChart(period = 'week') {
+        const chartData = window.stats.getChartData(period);
+        const container = document.getElementById('stats-chart');
+        
+        const maxValue = Math.max(...chartData.data, 1);
+        
+        const barsHTML = chartData.labels.map((label, index) => {
+            const value = chartData.data[index];
+            const height = (value / maxValue) * 100;
+            const displayValue = value.toFixed(1);
+            
+            return `
+                <div class="bar-item">
+                    <div class="bar" style="height: ${height}%">
+                        <div class="bar-value">${displayValue}h</div>
+                    </div>
+                    <div class="bar-label">${label}</div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = `<div class="bar-chart">${barsHTML}</div>`;
+    }
+    
+    toggleSession() {
+        const activeSession = window.stats.getActiveSession();
+        
+        if (activeSession) {
+            // Stop session
+            window.stats.stopSession();
+            this.updateActiveSessionDisplay();
+            document.getElementById('toggle-session-btn').textContent = window.i18n.get('stats.startSession');
+            document.getElementById('toggle-session-btn').classList.remove('active');
+            
+            // Refresh library to update stats
+            this.loadPage('library');
+        } else {
+            // Open session modal
+            this.openSessionModal();
+        }
+    }
+    
+    openSessionModal() {
+        const select = document.getElementById('session-game-select');
+        select.innerHTML = `<option value="" data-i18n="stats.selectGame">${window.i18n.get('stats.selectGame')}</option>`;
+        
+        this.library.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id;
+            option.textContent = game.name;
+            select.appendChild(option);
+        });
+        
+        this.openModal('session-modal');
+        
+        const confirmBtn = document.getElementById('confirm-session-btn');
+        const newHandler = () => {
+            const gameId = select.value;
+            const game = this.library.find(g => g.id == gameId);
+            
+            if (game) {
+                window.stats.startSession(game.id, game.name);
+                this.closeModal('session-modal');
+                this.updateActiveSessionDisplay();
+                document.getElementById('toggle-session-btn').textContent = window.i18n.get('stats.stopSession');
+                document.getElementById('toggle-session-btn').classList.add('active');
+            }
+            
+            confirmBtn.removeEventListener('click', newHandler);
+        };
+        
+        confirmBtn.addEventListener('click', newHandler);
+    }
+    
+    updateActiveSessionDisplay() {
+        const container = document.getElementById('active-session-display');
+        if (!container) return;
+        
+        const activeSession = window.stats.getActiveSession();
+        
+        if (!activeSession) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="active-session">
+                <div class="session-game">
+                    <div class="session-game-name">${this.escapeHtml(activeSession.gameName)}</div>
+                </div>
+                <div class="session-timer">${window.stats.formatDuration(activeSession.duration)}</div>
+            </div>
+        `;
+    }
+    
+    // ==================== WISHLIST ====================
     
     renderWishlist(container) {
         const title = window.i18n.get('wishlist.title');
@@ -167,6 +343,8 @@ class GammyApp {
             </div>
         `;
     }
+    
+    // ==================== DIARY ====================
     
     renderDiary(container) {
         const title = window.i18n.get('diary.title');
@@ -378,6 +556,8 @@ class GammyApp {
         }
     }
     
+    // ==================== UPCOMING ====================
+    
     async renderUpcoming(container) {
         const title = window.i18n.get('upcoming.title');
         
@@ -407,6 +587,8 @@ class GammyApp {
             </div>
         `;
     }
+    
+    // ==================== CALENDAR ====================
     
     async renderCalendar(container) {
         const now = new Date();
@@ -484,15 +666,32 @@ class GammyApp {
             const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayGames = games.filter(g => g.releaseDate && g.releaseDate.startsWith(dateStr));
             
+            // Get sessions for this day
+            const daySessions = window.stats.getSessionsForDate(dateStr);
+            
             // Ordina per hype
             dayGames.sort((a, b) => (b.hypes || 0) - (a.hypes || 0));
             
             const hasGames = dayGames.length > 0;
+            const hasSessions = daySessions.length > 0;
             const topGame = dayGames[0];
             
             html += `
-                <div class="calendar-day ${hasGames ? 'has-games' : ''}" ${hasGames ? `onclick="window.app.showDayGames('${dateStr}', ${JSON.stringify(dayGames).replace(/"/g, '&quot;')})"` : ''}>
+                <div class="calendar-day ${hasGames || hasSessions ? 'has-games' : ''}" 
+                     ${hasGames ? `onclick="window.app.showDayGames('${dateStr}', ${JSON.stringify(dayGames).replace(/"/g, '&quot;')})"` : ''}>
                     <div class="calendar-day-number">${day}</div>
+                    
+                    ${hasSessions ? `
+                        <div class="calendar-session">
+                            <span class="session-time">⏱️ ${window.stats.formatTime(daySessions.reduce((sum, s) => sum + s.duration, 0))}</span>
+                        </div>
+                        ${daySessions.length > 0 ? `
+                            <div class="calendar-session">
+                                🎮 ${daySessions.length} ${window.i18n.get('calendar.sessionsOnDay')}
+                            </div>
+                        ` : ''}
+                    ` : ''}
+                    
                     ${hasGames ? `
                         <div class="calendar-top-game">${this.escapeHtml(topGame.name)}</div>
                         ${dayGames.length > 1 ? `<div class="calendar-games-count">+${dayGames.length - 1} ${window.i18n.get('calendar.gamesOnDay')}</div>` : ''}
@@ -525,6 +724,8 @@ class GammyApp {
         
         this.openModal('day-games-modal');
     }
+    
+    // ==================== NEWS ====================
     
     async renderNews(container) {
         const title = window.i18n.get('news.title');
@@ -567,6 +768,8 @@ class GammyApp {
             </div>
         `;
     }
+    
+    // ==================== REMINDERS ====================
     
     renderReminders(container) {
         const title = window.i18n.get('reminders.title');
@@ -630,9 +833,12 @@ class GammyApp {
         this.renderReminders(document.getElementById('content-area'));
     }
     
+    // ==================== GAME CARDS ====================
+    
     createGameCard(game, showRating = false, showHype = false) {
         const rating = this.ratings[game.id] || 0;
         const releaseDate = game.released || game.releaseDate || window.i18n.get('gameDetail.notAvailable');
+        const gameStats = window.stats.getGameStats(game.id);
         
         return `
             <div class="game-card" onclick="window.app.showGameDetail(${game.id})">
@@ -651,10 +857,25 @@ class GammyApp {
                             ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
                         </div>
                     ` : ''}
+                    ${showRating && gameStats.totalTime > 0 ? `
+                        <div class="game-card-stats">
+                            <div class="game-stat">
+                                <span class="game-stat-icon">⏱️</span>
+                                ${window.stats.formatTime(gameStats.totalTime)}
+                            </div>
+                            <div class="game-stat">
+                                <span class="game-stat-icon">🎮</span>
+                                ${gameStats.sessions} ${window.i18n.get('stats.sessions')}
+                            </div>
+                            ${gameStats.completed ? `<div class="game-stat"><span class="game-stat-icon">✅</span></div>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     }
+    
+    // ==================== SEARCH ====================
     
     displaySearchResults(results) {
         const container = document.getElementById('search-results');
@@ -678,6 +899,8 @@ class GammyApp {
         `).join('');
     }
     
+    // ==================== GAME DETAIL ====================
+    
     async showGameDetail(gameId) {
         this.closeModal('search-modal');
         this.closeModal('day-games-modal');
@@ -697,7 +920,10 @@ class GammyApp {
         const isInWishlist = this.wishlist.some(g => g.id == gameId);
         const hasReminder = window.notifications.hasReminder(gameId);
         const userRating = this.ratings[gameId] || 0;
+        const gameStats = window.stats.getGameStats(gameId);
+        const isCompleted = gameStats.completed;
         
+        // Traduci la descrizione se necessario
         let description = game.description_raw || game.summary || window.i18n.get('gameDetail.notAvailable');
         if (description !== window.i18n.get('gameDetail.notAvailable')) {
             const targetLang = window.i18n.getLang();
@@ -765,10 +991,16 @@ class GammyApp {
                     <button class="btn-secondary" onclick="window.app.toggleReminder(${gameId})" data-i18n="${hasReminder ? 'reminders.removeReminder' : 'reminders.addReminder'}">
                         ${hasReminder ? '🔕' : '🔔'} ${window.i18n.get(hasReminder ? 'reminders.removeReminder' : 'reminders.addReminder')}
                     </button>
+                    ${isInLibrary ? `
+                        <button class="btn-secondary ${isCompleted ? 'active' : ''}" onclick="window.app.toggleCompleted(${gameId})" style="${isCompleted ? 'background: #22c55e; border-color: #22c55e; color: white;' : ''}">
+                            ${isCompleted ? '✅ Completato' : '⬜ Segna Completato'}
+                        </button>
+                    ` : ''}
                 </div>
             </div>
         `;
         
+        // Setup star rating
         if (isInLibrary) {
             document.querySelectorAll('.star-rating .star').forEach(star => {
                 star.addEventListener('click', () => {
@@ -782,21 +1014,8 @@ class GammyApp {
             });
         }
         
+        // Store game data for later use
         this.currentGame = game;
-    }
-    
-    toggleReminder(gameId) {
-        if (window.notifications.hasReminder(gameId)) {
-            window.notifications.removeReminder(gameId);
-        } else {
-            const added = window.notifications.addReminder(this.currentGame);
-            if (added) {
-                alert('✅ Promemoria aggiunto!');
-            }
-        }
-        
-        // Ricarica il modal
-        this.showGameDetail(gameId);
     }
     
     getPlatformIcons(platforms) {
@@ -836,6 +1055,8 @@ class GammyApp {
         return 'low';
     }
     
+    // ==================== ACTIONS ====================
+    
     toggleLibrary(gameId) {
         const index = this.library.findIndex(g => g.id == gameId);
         
@@ -874,10 +1095,43 @@ class GammyApp {
         }
     }
     
+    toggleReminder(gameId) {
+        if (window.notifications.hasReminder(gameId)) {
+            window.notifications.removeReminder(gameId);
+        } else {
+            const added = window.notifications.addReminder(this.currentGame);
+            if (added) {
+                alert('✅ Promemoria aggiunto!');
+            }
+        }
+        
+        // Ricarica il modal
+        this.showGameDetail(gameId);
+    }
+    
+    toggleCompleted(gameId) {
+        const gameStats = window.stats.getGameStats(gameId);
+        window.stats.markGameCompleted(gameId, !gameStats.completed);
+        
+        // Ricarica il modal
+        this.showGameDetail(gameId);
+        
+        // Se siamo nella pagina library, aggiorna anche quella
+        const currentPage = document.querySelector('.nav-link.active')?.dataset.page;
+        if (currentPage === 'library') {
+            setTimeout(() => {
+                this.closeModal('detail-modal');
+                this.loadPage('library');
+            }, 300);
+        }
+    }
+    
     setRating(gameId, rating) {
         this.ratings[gameId] = rating;
         this.saveRatings();
     }
+    
+    // ==================== STORAGE ====================
     
     saveLibrary() {
         localStorage.setItem('gammy-library', JSON.stringify(this.library));
@@ -895,6 +1149,8 @@ class GammyApp {
         localStorage.setItem('gammy-ratings', JSON.stringify(this.ratings));
     }
     
+    // ==================== HELPERS ====================
+    
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -902,6 +1158,7 @@ class GammyApp {
     }
 }
 
+// Inizializza l'app quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new GammyApp();
 });

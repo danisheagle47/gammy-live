@@ -1,4 +1,4 @@
-// Sistema di internazionalizzazione - Aggiornato
+// Sistema di internazionalizzazione - Aggiornato con Stats
 const translations = {
     it: {
         nav: {
@@ -21,6 +21,30 @@ const translations = {
             empty: 'La tua libreria è vuota',
             emptyDesc: 'Inizia ad aggiungere giochi dalla ricerca!',
             yourRating: 'La tua valutazione'
+        },
+        stats: {
+            title: 'Statistiche',
+            totalTime: 'Tempo Totale',
+            gamesCompleted: 'Giochi Completati',
+            averageSession: 'Sessione Media',
+            currentStreak: 'Serie Attuale',
+            chart: 'Tempo di Gioco',
+            day: 'Giorno',
+            week: 'Settimana',
+            month: 'Mese',
+            year: 'Anno',
+            hours: 'ore',
+            minutes: 'min',
+            days: 'giorni',
+            startSession: 'Inizia Sessione',
+            stopSession: 'Termina Sessione',
+            activeSession: 'Sessione Attiva',
+            selectGame: 'Seleziona un gioco',
+            start: 'Inizia',
+            noStats: 'Nessuna statistica',
+            noStatsDesc: 'Inizia a giocare per vedere le tue statistiche!',
+            playedToday: 'Giocato Oggi',
+            sessions: 'sessioni'
         },
         wishlist: {
             title: 'La Mia Wishlist',
@@ -57,7 +81,8 @@ const translations = {
             prev: '← Precedente',
             next: 'Successivo →',
             gamesOnDay: 'giochi in uscita',
-            viewAll: 'Vedi tutti'
+            viewAll: 'Vedi tutti',
+            sessionsOnDay: 'sessioni'
         },
         news: {
             title: 'Ultime Notizie',
@@ -121,6 +146,30 @@ const translations = {
             emptyDesc: 'Start adding games from search!',
             yourRating: 'Your rating'
         },
+        stats: {
+            title: 'Statistics',
+            totalTime: 'Total Time',
+            gamesCompleted: 'Games Completed',
+            averageSession: 'Average Session',
+            currentStreak: 'Current Streak',
+            chart: 'Play Time',
+            day: 'Day',
+            week: 'Week',
+            month: 'Month',
+            year: 'Year',
+            hours: 'hrs',
+            minutes: 'min',
+            days: 'days',
+            startSession: 'Start Session',
+            stopSession: 'Stop Session',
+            activeSession: 'Active Session',
+            selectGame: 'Select a game',
+            start: 'Start',
+            noStats: 'No statistics',
+            noStatsDesc: 'Start playing to see your stats!',
+            playedToday: 'Played Today',
+            sessions: 'sessions'
+        },
         wishlist: {
             title: 'My Wishlist',
             empty: 'Your wishlist is empty',
@@ -156,7 +205,8 @@ const translations = {
             prev: '← Previous',
             next: 'Next →',
             gamesOnDay: 'releases',
-            viewAll: 'View all'
+            viewAll: 'View all',
+            sessionsOnDay: 'sessions'
         },
         news: {
             title: 'Latest News',
