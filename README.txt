@@ -16,10 +16,19 @@ A beautiful, feature-rich game tracking application with a stunning Nebula dark 
 ## Setup
 
 1. Clone the repository
-2. Copy `.env.example` to `.env` and fill in your API keys:
    - Get RAWG API key from https://rawg.io/apidocs
    - Get Twitch credentials from https://dev.twitch.tv/console/apps
 
 3. Deploy to Vercel:
    ```bash
    vercel
+
+## Setup
+
+### API Keys Necessarie
+
+Configura queste variabili su Vercel Dashboard (Settings → Environment Variables):
+
+- `RAWG_API_KEY` - Ottienila da https://rawg.io/apidocs
+- `TWITCH_CLIENT_ID` - Crea un'app su https://dev.twitch.tv/console
+- `TWITCH_CLIENT_SECRET` - Stesso posto del Client ID
