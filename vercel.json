@@ -1,3 +1,20 @@
 {
-  "version": 2
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ],
+  "env": {
+    "RAWG_API_KEY": "@rawg-api-key",
+    "TWITCH_CLIENT_ID": "@twitch-client-id",
+    "TWITCH_CLIENT_SECRET": "@twitch-client-secret"
+  }
 }

@@ -1,21 +1,42 @@
-module.exports = async function (req, res) {
-  try {
-    const { to = 'it' } = req.query;
-    const { text } = await readJson(req);
-    if (!text) return res.status(400).json({ error: 'Missing text' });
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent('en|' + to)}`;
-    const r = await fetch(url);
-    const j = await r.json();
-    const translation = j?.responseData?.translatedText || text;
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(200).json({ translation });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-};
-async function readJson(req) {
-  const chunks = [];
-  for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString('utf8');
-  return raw ? JSON.parse(raw) : {};
+// Vercel Serverless Function - Translate Text using MyMemory API
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+    
+    const { text, targetLang } = req.body;
+    
+    if (!text || !targetLang) {
+        return res.status(400).json({ error: 'Text and target language required' });
+    }
+    
+    // Limit text length to avoid API limits
+    const truncatedText = text.substring(0, 500);
+    
+    try {
+        const sourceLang = targetLang === 'it' ? 'en' : 'it';
+        
+        const response = await fetch(
+            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(truncatedText)}&langpair=${sourceLang}|${targetLang}`,
+            {
+                headers: {
+                    'User-Agent': 'Gammy/1.0'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error('Translation API error');
+        }
+        
+        const data = await response.json();
+        
+        res.setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate');
+        res.status(200).json({
+            translatedText: data.responseData?.translatedText || text
+        });
+    } catch (error) {
+        console.error('Translation error:', error);
+        res.status(200).json({ translatedText: text });
+    }
 }

@@ -1,134 +1,103 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gammy — Nebula Game Tracker</title>
-  <meta name="theme-color" content="#0D0D1A"/>
-  <link rel="preconnect" href="https://images.igdb.com" crossorigin>
-  <!-- CSS: percorsi relativi per Vercel -->
-  <link rel="stylesheet" href="styles.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gammy - Il Tuo Tracker di Videogiochi</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Sfondo animato -->
-  <canvas id="bg-canvas" aria-hidden="true"></canvas>
-  <div class="bg-nebula-overlay" aria-hidden="true"></div>
+    <!-- Canvas per animazione particelle -->
+    <canvas id="particles-canvas"></canvas>
 
-  <!-- Sidebar -->
-  <aside class="sidebar glass" role="navigation" aria-label="Sidebar">
-    <div class="brand">
-      <span class="logo">🎮</span>
-      <span class="brand-name">Gammy</span>
-    </div>
-
-    <nav class="nav">
-      <a href="#/library" data-i18n="nav.library" class="nav-link active">Libreria</a>
-      <a href="#/wishlist" data-i18n="nav.wishlist" class="nav-link">Wishlist</a>
-      <a href="#/diary" data-i18n="nav.diary" class="nav-link">Diario</a>
-      <div class="nav-sep"></div>
-      <a href="#/upcoming" data-i18n="nav.upcoming" class="nav-link">In Uscita</a>
-      <a href="#/calendar" data-i18n="nav.calendar" class="nav-link">Calendario</a>
-      <a href="#/news" data-i18n="nav.news" class="nav-link">Notizie</a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="lang-switch" aria-label="Language switch">
-        <button class="lang-btn" data-lang="it">IT</button>
-        <span class="sep">|</span>
-        <button class="lang-btn" data-lang="en">EN</button>
-      </div>
-      <div class="foot-note">Nebula Mode</div>
-    </div>
-  </aside>
-
-  <!-- Contenuto -->
-  <main class="content">
-    <header class="topbar glass">
-      <form id="searchForm" class="searchbar" role="search" aria-label="Search">
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Cerca giochi..."
-          data-i18n-placeholder="search.placeholder"
-          autocomplete="off"
-          aria-label="Search games"
-        />
-        <button class="primary-btn" type="submit" data-i18n="search.search">Cerca</button>
-      </form>
-      <div class="actions">
-        <button id="openSearch" class="icon-btn" title="Search" aria-label="Open search">🔎</button>
-      </div>
-    </header>
-
-    <section id="view-root" class="view" aria-live="polite"></section>
-  </main>
-
-  <!-- Modal: Risultati ricerca -->
-  <div id="modal-search" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-search-title">
-    <div class="modal-overlay" data-close="true"></div>
-    <div class="modal-card glass">
-      <div class="modal-header">
-        <h3 id="modal-search-title" data-i18n="search.results">Risultati</h3>
-        <button class="icon-btn close" data-close="true" aria-label="Close">✖</button>
-      </div>
-      <div class="modal-body">
-        <div class="results-grid" id="searchResults"></div>
-        <div class="modal-footer" style="margin-top:12px">
-          <button class="secondary-btn" data-close="true" data-i18n="common.close">Chiudi</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Dettaglio gioco -->
-  <div id="modal-detail" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-detail-title">
-    <div class="modal-overlay" data-close="true"></div>
-    <div class="modal-card modal-detail glass">
-      <div class="detail-hero" aria-hidden="true">
-        <img id="detailCover" alt="" />
-        <div class="hero-gradient"></div>
-      </div>
-      <div class="modal-header">
-        <h3 id="modal-detail-title">Game Title</h3>
-        <button class="icon-btn close" data-close="true" aria-label="Close">✖</button>
-      </div>
-      <div class="modal-body detail-body">
-        <div class="detail-meta">
-          <div class="meta-row">
-            <span data-i18n="detail.developer">Sviluppatore</span>
-            <strong id="detailDeveloper">—</strong>
-          </div>
-          <div class="meta-row">
-            <span data-i18n="detail.release">Data di uscita</span>
-            <strong id="detailRelease">—</strong>
-          </div>
-          <div class="meta-row platforms">
-            <span data-i18n="detail.platforms">Piattaforme</span>
-            <div id="detailPlatforms" class="platform-list"></div>
-          </div>
-          <div class="meta-row">
-            <span>Metacritic</span>
-            <strong id="detailMetacritic">—</strong>
-          </div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>GAMMY</h1>
         </div>
 
-        <div class="detail-desc">
-          <p id="detailDescription">—</p>
-        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="#" data-page="library" class="nav-link active" data-i18n="nav.library">Libreria</a></li>
+                <li><a href="#" data-page="wishlist" class="nav-link" data-i18n="nav.wishlist">Wishlist</a></li>
+                <li><a href="#" data-page="diary" class="nav-link" data-i18n="nav.diary">Diario di Gioco</a></li>
+                <li class="divider"></li>
+                <li><a href="#" data-page="upcoming" class="nav-link" data-i18n="nav.upcoming">In Uscita</a></li>
+                <li><a href="#" data-page="calendar" class="nav-link" data-i18n="nav.calendar">Calendario</a></li>
+                <li><a href="#" data-page="news" class="nav-link" data-i18n="nav.news">Notizie</a></li>
+            </ul>
+        </nav>
 
-        <div class="detail-actions">
-          <button id="btnAddLibrary" class="primary-btn" data-i18n="detail.addLibrary">Aggiungi alla Libreria</button>
-          <button id="btnAddWishlist" class="secondary-btn" data-i18n="detail.addWishlist">Aggiungi alla Wishlist</button>
-          <div id="personalRating" class="stars hidden" aria-label="Personal rating"></div>
+        <div class="sidebar-footer">
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="it">IT</button>
+                <span>|</span>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
         </div>
-      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header con ricerca -->
+        <header class="header">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Cerca un gioco..." data-i18n-placeholder="search.placeholder">
+                <button id="search-btn" data-i18n="search.button">Cerca</button>
+            </div>
+        </header>
+
+        <!-- Contenuto dinamico -->
+        <div id="content-area" class="content-area">
+            <!-- Il contenuto viene caricato dinamicamente -->
+        </div>
+    </main>
+
+    <!-- Modal Ricerca -->
+    <div id="search-modal" class="modal">
+        <div class="modal-content modal-search">
+            <div class="modal-header">
+                <h2 data-i18n="search.results">Risultati della Ricerca</h2>
+                <button class="close-btn" data-modal="search-modal">&times;</button>
+            </div>
+            <div id="search-results" class="search-results-grid">
+                <!-- Risultati della ricerca -->
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <!-- Modal Dettaglio Gioco -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content modal-detail">
+            <button class="close-btn" data-modal="detail-modal">&times;</button>
+            <div id="game-detail-content">
+                <!-- Dettagli del gioco -->
+            </div>
+        </div>
+    </div>
 
-  <!-- JS: percorsi relativi per Vercel -->
-  <script type="module" src="js/app.js"></script>
+    <!-- Modal Diario -->
+    <div id="diary-modal" class="modal">
+        <div class="modal-content modal-diary">
+            <div class="modal-header">
+                <h2 data-i18n="diary.addEntry">Aggiungi Nota</h2>
+                <button class="close-btn" data-modal="diary-modal">&times;</button>
+            </div>
+            <div class="diary-form">
+                <select id="diary-game-select">
+                    <option value="" data-i18n="diary.selectGame">Seleziona un gioco</option>
+                </select>
+                <input type="text" id="diary-title" placeholder="Titolo della sessione" data-i18n-placeholder="diary.titlePlaceholder">
+                <textarea id="diary-content" placeholder="Racconta la tua esperienza..." data-i18n-placeholder="diary.contentPlaceholder"></textarea>
+                <button id="save-diary-btn" class="btn-primary" data-i18n="diary.save">Salva Nota</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/particles.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
