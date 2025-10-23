@@ -1,10 +1,12 @@
-// Applicazione principale
+// Applicazione principale - Gammy 2.0
 class GammyApp {
     constructor() {
         this.library = JSON.parse(localStorage.getItem('gammy-library')) || [];
         this.wishlist = JSON.parse(localStorage.getItem('gammy-wishlist')) || [];
         this.diary = JSON.parse(localStorage.getItem('gammy-diary')) || [];
         this.ratings = JSON.parse(localStorage.getItem('gammy-ratings')) || {};
+        this.currentDiaryImages = [];
+        this.currentDiaryRating = 0;
         
         this.init();
     }
@@ -108,6 +110,9 @@ class GammyApp {
             case 'news':
                 await this.renderNews(contentArea);
                 break;
+            case 'reminders':
+                this.renderReminders(contentArea);
+                break;
         }
         
         window.i18n.translate();
@@ -201,18 +206,43 @@ class GammyApp {
                     <div>
                         <div class="diary-entry-title">${this.escapeHtml(entry.title)}</div>
                         <div class="diary-entry-game">${this.escapeHtml(entry.gameName)}</div>
+                        ${entry.rating ? `<div class="diary-entry-rating">${'★'.repeat(entry.rating)}${'☆'.repeat(5 - entry.rating)}</div>` : ''}
                     </div>
-                    <div class="diary-entry-date">${new Date(entry.date).toLocaleDateString()}</div>
+                    <div>
+                        <div class="diary-entry-date">${new Date(entry.date).toLocaleDateString()}</div>
+                        <div class="diary-entry-actions">
+                            <button class="btn-edit" onclick="window.app.editDiaryEntry(${entry.id})" data-i18n="diary.edit">${window.i18n.get('diary.edit')}</button>
+                            <button class="btn-delete" onclick="window.app.deleteDiaryEntry(${entry.id})" data-i18n="diary.delete">${window.i18n.get('diary.delete')}</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="diary-entry-content">${this.escapeHtml(entry.content)}</div>
+                ${entry.images && entry.images.length > 0 ? `
+                    <div class="diary-entry-images">
+                        ${entry.images.map(img => `
+                            <img src="${img}" class="diary-entry-image" onclick="window.imageUpload.openLightbox('${img}')" alt="Diary image">
+                        `).join('')}
+                    </div>
+                ` : ''}
             </div>
         `).join('');
     }
     
-    openDiaryModal() {
+    openDiaryModal(editEntry = null) {
         const select = document.getElementById('diary-game-select');
-        select.innerHTML = `<option value="" data-i18n="diary.selectGame">${window.i18n.get('diary.selectGame')}</option>`;
+        const titleInput = document.getElementById('diary-title');
+        const contentInput = document.getElementById('diary-content');
+        const entryIdInput = document.getElementById('diary-entry-id');
+        const modalTitle = document.getElementById('diary-modal-title');
+        const previewContainer = document.getElementById('diary-images-preview');
         
+        // Reset
+        select.innerHTML = `<option value="" data-i18n="diary.selectGame">${window.i18n.get('diary.selectGame')}</option>`;
+        this.currentDiaryImages = [];
+        this.currentDiaryRating = 0;
+        previewContainer.innerHTML = '';
+        
+        // Popola giochi
         this.library.forEach(game => {
             const option = document.createElement('option');
             option.value = game.id;
@@ -220,8 +250,41 @@ class GammyApp {
             select.appendChild(option);
         });
         
-        document.getElementById('diary-title').value = '';
-        document.getElementById('diary-content').value = '';
+        if (editEntry) {
+            // Modalità modifica
+            modalTitle.textContent = window.i18n.get('diary.editEntry');
+            entryIdInput.value = editEntry.id;
+            select.value = editEntry.gameId;
+            titleInput.value = editEntry.title;
+            contentInput.value = editEntry.content;
+            this.currentDiaryRating = editEntry.rating || 0;
+            this.currentDiaryImages = editEntry.images || [];
+            
+            // Mostra preview immagini esistenti
+            if (this.currentDiaryImages.length > 0) {
+                window.imageUpload.renderPreview(this.currentDiaryImages, previewContainer);
+            }
+        } else {
+            // Modalità nuova nota
+            modalTitle.textContent = window.i18n.get('diary.addEntry');
+            entryIdInput.value = '';
+            titleInput.value = '';
+            contentInput.value = '';
+        }
+        
+        // Setup rating stars
+        this.setupDiaryRating();
+        
+        // Setup file input
+        const fileInput = document.getElementById('diary-images');
+        fileInput.value = '';
+        fileInput.onchange = async () => {
+            this.currentDiaryImages = await window.imageUpload.handleFileInput(
+                fileInput, 
+                previewContainer, 
+                this.currentDiaryImages
+            );
+        };
         
         this.openModal('diary-modal');
         
@@ -233,31 +296,86 @@ class GammyApp {
         saveBtn.addEventListener('click', newHandler);
     }
     
+    setupDiaryRating() {
+        const stars = document.querySelectorAll('#diary-star-rating .star');
+        
+        // Mostra rating corrente
+        stars.forEach((star, index) => {
+            star.classList.toggle('filled', index < this.currentDiaryRating);
+        });
+        
+        // Setup click handlers
+        stars.forEach(star => {
+            star.onclick = () => {
+                this.currentDiaryRating = parseInt(star.dataset.rating);
+                stars.forEach((s, index) => {
+                    s.classList.toggle('filled', index < this.currentDiaryRating);
+                });
+            };
+        });
+    }
+    
     saveDiaryEntry() {
+        const entryId = document.getElementById('diary-entry-id').value;
         const gameId = document.getElementById('diary-game-select').value;
         const title = document.getElementById('diary-title').value.trim();
         const content = document.getElementById('diary-content').value.trim();
         
         if (!gameId || !title || !content) {
-            alert('Compila tutti i campi!');
+            alert('Compila tutti i campi obbligatori!');
             return;
         }
         
         const game = this.library.find(g => g.id == gameId);
         
-        const entry = {
-            id: Date.now(),
-            gameId,
-            gameName: game.name,
-            title,
-            content,
-            date: new Date().toISOString()
-        };
+        if (entryId) {
+            // Modifica esistente
+            const index = this.diary.findIndex(e => e.id == entryId);
+            if (index > -1) {
+                this.diary[index] = {
+                    ...this.diary[index],
+                    gameId,
+                    gameName: game.name,
+                    title,
+                    content,
+                    rating: this.currentDiaryRating,
+                    images: this.currentDiaryImages,
+                    updated: new Date().toISOString()
+                };
+            }
+        } else {
+            // Nuova nota
+            const entry = {
+                id: Date.now(),
+                gameId,
+                gameName: game.name,
+                title,
+                content,
+                rating: this.currentDiaryRating,
+                images: this.currentDiaryImages,
+                date: new Date().toISOString()
+            };
+            this.diary.push(entry);
+        }
         
-        this.diary.push(entry);
         this.saveDiary();
         this.closeModal('diary-modal');
         this.renderDiaryEntries();
+    }
+    
+    editDiaryEntry(entryId) {
+        const entry = this.diary.find(e => e.id === entryId);
+        if (entry) {
+            this.openDiaryModal(entry);
+        }
+    }
+    
+    deleteDiaryEntry(entryId) {
+        if (confirm(window.i18n.get('diary.confirmDelete'))) {
+            this.diary = this.diary.filter(e => e.id !== entryId);
+            this.saveDiary();
+            this.renderDiaryEntries();
+        }
     }
     
     async renderUpcoming(container) {
@@ -285,7 +403,7 @@ class GammyApp {
         
         upcomingContainer.innerHTML = `
             <div class="games-grid">
-                ${games.map(game => this.createGameCard(game, false)).join('')}
+                ${games.map(game => this.createGameCard(game, false, true)).join('')}
             </div>
         `;
     }
@@ -366,14 +484,19 @@ class GammyApp {
             const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayGames = games.filter(g => g.releaseDate && g.releaseDate.startsWith(dateStr));
             
+            // Ordina per hype
+            dayGames.sort((a, b) => (b.hypes || 0) - (a.hypes || 0));
+            
+            const hasGames = dayGames.length > 0;
+            const topGame = dayGames[0];
+            
             html += `
-                <div class="calendar-day">
+                <div class="calendar-day ${hasGames ? 'has-games' : ''}" ${hasGames ? `onclick="window.app.showDayGames('${dateStr}', ${JSON.stringify(dayGames).replace(/"/g, '&quot;')})"` : ''}>
                     <div class="calendar-day-number">${day}</div>
-                    ${dayGames.map(game => `
-                        <div class="calendar-game-item" onclick="window.app.showGameDetail(${game.id})">
-                            ${this.escapeHtml(game.name)}
-                        </div>
-                    `).join('')}
+                    ${hasGames ? `
+                        <div class="calendar-top-game">${this.escapeHtml(topGame.name)}</div>
+                        ${dayGames.length > 1 ? `<div class="calendar-games-count">+${dayGames.length - 1} ${window.i18n.get('calendar.gamesOnDay')}</div>` : ''}
+                    ` : ''}
                 </div>
             `;
         }
@@ -381,6 +504,26 @@ class GammyApp {
         html += '</div>';
         
         document.getElementById('calendar-grid').innerHTML = html;
+    }
+    
+    showDayGames(date, gamesJson) {
+        const games = JSON.parse(gamesJson);
+        const dateObj = new Date(date);
+        const formattedDate = dateObj.toLocaleDateString();
+        
+        document.getElementById('day-games-title').textContent = `${window.i18n.get('calendar.title')} - ${formattedDate}`;
+        
+        const content = document.getElementById('day-games-content');
+        content.innerHTML = games.map(game => `
+            <div class="search-result-card" onclick="window.app.showGameDetail(${game.id})">
+                <img src="${game.cover || game.background_image || 'https://via.placeholder.com/200x150?text=No+Image'}" 
+                     alt="${this.escapeHtml(game.name)}" class="search-result-image"
+                     onerror="this.src='https://via.placeholder.com/200x150?text=No+Image'">
+                <div class="search-result-title">${this.escapeHtml(game.name)}</div>
+            </div>
+        `).join('');
+        
+        this.openModal('day-games-modal');
     }
     
     async renderNews(container) {
@@ -408,12 +551,15 @@ class GammyApp {
         
         newsContainer.innerHTML = `
             <div class="news-feed">
-                ${news.map(article => `
-                    <div class="news-article" onclick="window.open('${article.url}', '_blank')">
+                ${news.map((article, index) => `
+                    <div class="news-article ${index === 0 ? 'featured' : ''}" onclick="window.open('${article.url}', '_blank')">
                         ${article.image ? `<img src="${article.image}" alt="${this.escapeHtml(article.title)}" class="news-image">` : ''}
                         <div class="news-content">
                             <h3 class="news-title">${this.escapeHtml(article.title)}</h3>
-                            <div class="news-meta">${new Date(article.publishedAt).toLocaleDateString()}</div>
+                            <div class="news-meta">
+                                <span class="news-source">${article.category || 'Gaming'}</span>
+                                ${new Date(article.publishedAt).toLocaleDateString()}
+                            </div>
                             <p class="news-summary">${this.escapeHtml(article.summary || '')}</p>
                         </div>
                     </div>
@@ -422,7 +568,69 @@ class GammyApp {
         `;
     }
     
-    createGameCard(game, showRating = false) {
+    renderReminders(container) {
+        const title = window.i18n.get('reminders.title');
+        const reminders = window.notifications.getReminders();
+        
+        if (reminders.length === 0) {
+            container.innerHTML = `
+                <h1 class="page-title">${title}</h1>
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔔</div>
+                    <h3 data-i18n="reminders.empty">${window.i18n.get('reminders.empty')}</h3>
+                    <p data-i18n="reminders.emptyDesc">${window.i18n.get('reminders.emptyDesc')}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <h1 class="page-title">${title}</h1>
+            <div class="reminders-grid">
+                ${reminders.map(reminder => {
+                    const daysLeft = window.notifications.getDaysUntilRelease(reminder.releaseDate);
+                    let daysText = '';
+                    let isUrgent = false;
+                    
+                    if (daysLeft === 0) {
+                        daysText = window.i18n.get('reminders.today');
+                        isUrgent = true;
+                    } else if (daysLeft === 1) {
+                        daysText = window.i18n.get('reminders.tomorrow');
+                        isUrgent = true;
+                    } else if (daysLeft > 0) {
+                        daysText = `${daysLeft} ${window.i18n.get('reminders.daysLeft')}`;
+                    } else {
+                        daysText = window.i18n.get('gameDetail.notAvailable');
+                    }
+                    
+                    return `
+                        <div class="reminder-card">
+                            <button class="remove-reminder-btn" onclick="window.app.removeReminder(${reminder.gameId})" title="${window.i18n.get('reminders.remove')}">&times;</button>
+                            <div class="reminder-card-header">
+                                <img src="${reminder.gameImage || 'https://via.placeholder.com/80x80?text=No+Image'}" 
+                                     alt="${this.escapeHtml(reminder.gameName)}" 
+                                     class="reminder-game-image"
+                                     onerror="this.src='https://via.placeholder.com/80x80?text=No+Image'">
+                                <div class="reminder-game-info">
+                                    <div class="reminder-game-title">${this.escapeHtml(reminder.gameName)}</div>
+                                    <div class="reminder-date">${new Date(reminder.releaseDate).toLocaleDateString()}</div>
+                                    <span class="reminder-days-left ${isUrgent ? 'urgent' : ''}">${daysText}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+    
+    removeReminder(gameId) {
+        window.notifications.removeReminder(gameId);
+        this.renderReminders(document.getElementById('content-area'));
+    }
+    
+    createGameCard(game, showRating = false, showHype = false) {
         const rating = this.ratings[game.id] || 0;
         const releaseDate = game.released || game.releaseDate || window.i18n.get('gameDetail.notAvailable');
         
@@ -436,6 +644,7 @@ class GammyApp {
                     <div class="game-card-meta">
                         <span class="meta-badge">${releaseDate}</span>
                         ${game.metacritic ? `<span class="meta-badge">⭐ ${game.metacritic}</span>` : ''}
+                        ${showHype && game.hypes ? `<span class="hype-badge"><span class="hype-icon">🔥</span> ${game.hypes}</span>` : ''}
                     </div>
                     ${showRating && rating > 0 ? `
                         <div class="game-card-rating">
@@ -471,6 +680,7 @@ class GammyApp {
     
     async showGameDetail(gameId) {
         this.closeModal('search-modal');
+        this.closeModal('day-games-modal');
         this.openModal('detail-modal');
         
         const container = document.getElementById('game-detail-content');
@@ -485,9 +695,9 @@ class GammyApp {
         
         const isInLibrary = this.library.some(g => g.id == gameId);
         const isInWishlist = this.wishlist.some(g => g.id == gameId);
+        const hasReminder = window.notifications.hasReminder(gameId);
         const userRating = this.ratings[gameId] || 0;
         
-        // Traduci la descrizione se necessario
         let description = game.description_raw || game.summary || window.i18n.get('gameDetail.notAvailable');
         if (description !== window.i18n.get('gameDetail.notAvailable')) {
             const targetLang = window.i18n.getLang();
@@ -552,11 +762,13 @@ class GammyApp {
                     <button class="btn-secondary" onclick="window.app.toggleWishlist(${gameId})" data-i18n="${isInWishlist ? 'gameDetail.removeFromWishlist' : 'gameDetail.addToWishlist'}">
                         ${window.i18n.get(isInWishlist ? 'gameDetail.removeFromWishlist' : 'gameDetail.addToWishlist')}
                     </button>
+                    <button class="btn-secondary" onclick="window.app.toggleReminder(${gameId})" data-i18n="${hasReminder ? 'reminders.removeReminder' : 'reminders.addReminder'}">
+                        ${hasReminder ? '🔕' : '🔔'} ${window.i18n.get(hasReminder ? 'reminders.removeReminder' : 'reminders.addReminder')}
+                    </button>
                 </div>
             </div>
         `;
         
-        // Setup star rating
         if (isInLibrary) {
             document.querySelectorAll('.star-rating .star').forEach(star => {
                 star.addEventListener('click', () => {
@@ -570,8 +782,21 @@ class GammyApp {
             });
         }
         
-        // Store game data for later use
         this.currentGame = game;
+    }
+    
+    toggleReminder(gameId) {
+        if (window.notifications.hasReminder(gameId)) {
+            window.notifications.removeReminder(gameId);
+        } else {
+            const added = window.notifications.addReminder(this.currentGame);
+            if (added) {
+                alert('✅ Promemoria aggiunto!');
+            }
+        }
+        
+        // Ricarica il modal
+        this.showGameDetail(gameId);
     }
     
     getPlatformIcons(platforms) {
@@ -677,7 +902,6 @@ class GammyApp {
     }
 }
 
-// Inizializza l'app quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new GammyApp();
 });

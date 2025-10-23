@@ -44,10 +44,10 @@ export default async function handler(req, res) {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             },
-            body: `fields name, first_release_date; 
+            body: `fields name, first_release_date, cover.url, hypes, rating, platforms.name; 
                    where first_release_date >= ${startTimestamp} & first_release_date <= ${endTimestamp}; 
                    sort first_release_date asc; 
-                   limit 100;`
+                   limit 200;`
         });
         
         if (!response.ok) {
@@ -59,7 +59,13 @@ export default async function handler(req, res) {
         const formattedGames = games.map(game => ({
             id: game.id,
             name: game.name,
-            releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null
+            releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null,
+            released: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null,
+            cover: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null,
+            background_image: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_screenshot_big')}` : null,
+            hypes: game.hypes || 0,
+            metacritic: game.rating ? Math.round(game.rating) : null,
+            platformsList: game.platforms || []
         }));
         
         res.status(200).json(formattedGames);

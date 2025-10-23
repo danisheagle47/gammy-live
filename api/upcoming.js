@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         }
         
         const now = Math.floor(Date.now() / 1000);
-        const threeMonthsLater = now + (90 * 24 * 60 * 60);
+        const sixMonthsLater = now + (180 * 24 * 60 * 60);
         
         const response = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -35,10 +35,10 @@ export default async function handler(req, res) {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             },
-            body: `fields name, cover.url, first_release_date, hypes, rating; 
-                   where first_release_date >= ${now} & first_release_date < ${threeMonthsLater} & hypes > 0; 
+            body: `fields name, cover.url, first_release_date, hypes, rating, summary, platforms.name; 
+                   where first_release_date >= ${now} & first_release_date < ${sixMonthsLater} & hypes != null; 
                    sort hypes desc; 
-                   limit 20;`
+                   limit 30;`
         });
         
         if (!response.ok) {
@@ -53,7 +53,11 @@ export default async function handler(req, res) {
             cover: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null,
             background_image: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_screenshot_big')}` : null,
             releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null,
-            metacritic: game.rating ? Math.round(game.rating) : null
+            released: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null,
+            metacritic: game.rating ? Math.round(game.rating) : null,
+            hypes: game.hypes || 0,
+            summary: game.summary || '',
+            platformsList: game.platforms || []
         }));
         
         res.status(200).json(formattedGames);

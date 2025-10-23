@@ -1,13 +1,14 @@
-// Sistema di internazionalizzazione
+// Sistema di internazionalizzazione - Aggiornato
 const translations = {
     it: {
         nav: {
             library: 'Libreria',
             wishlist: 'Wishlist',
             diary: 'Diario di Gioco',
-            upcoming: 'In Uscita',
+            upcoming: 'Più Attesi',
             calendar: 'Calendario',
-            news: 'Notizie'
+            news: 'Notizie',
+            reminders: 'Promemoria'
         },
         search: {
             placeholder: 'Cerca un gioco...',
@@ -31,15 +32,22 @@ const translations = {
             empty: 'Nessuna nota nel diario',
             emptyDesc: 'Inizia a documentare le tue sessioni di gioco!',
             addEntry: 'Aggiungi Nota',
+            editEntry: 'Modifica Nota',
             selectGame: 'Seleziona un gioco',
             titlePlaceholder: 'Titolo della sessione',
             contentPlaceholder: 'Racconta la tua esperienza...',
             save: 'Salva Nota',
-            addButton: '+ Aggiungi Nota'
+            addButton: '+ Aggiungi Nota',
+            rating: 'Voto',
+            photos: 'Foto',
+            edit: 'Modifica',
+            delete: 'Elimina',
+            confirmDelete: 'Sei sicuro di voler eliminare questa nota?'
         },
         upcoming: {
-            title: 'Giochi in Uscita',
-            mostAnticipated: 'I Più Attesi'
+            title: 'Giochi Più Attesi',
+            mostAnticipated: 'I Più Attesi',
+            hype: 'Hype'
         },
         calendar: {
             title: 'Calendario Uscite',
@@ -47,11 +55,25 @@ const translations = {
                      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
             days: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
             prev: '← Precedente',
-            next: 'Successivo →'
+            next: 'Successivo →',
+            gamesOnDay: 'giochi in uscita',
+            viewAll: 'Vedi tutti'
         },
         news: {
             title: 'Ultime Notizie',
-            readMore: 'Leggi di più'
+            readMore: 'Leggi di più',
+            source: 'Fonte'
+        },
+        reminders: {
+            title: 'I Miei Promemoria',
+            empty: 'Nessun promemoria',
+            emptyDesc: 'Aggiungi promemoria dai dettagli dei giochi!',
+            daysLeft: 'giorni',
+            today: 'Esce oggi!',
+            tomorrow: 'Esce domani!',
+            remove: 'Rimuovi',
+            addReminder: 'Aggiungi Promemoria',
+            removeReminder: 'Rimuovi Promemoria'
         },
         gameDetail: {
             addToLibrary: 'Aggiungi alla Libreria',
@@ -65,12 +87,16 @@ const translations = {
             rating: 'Valutazione',
             description: 'Descrizione',
             yourRating: 'La Tua Valutazione',
-            notAvailable: 'Non disponibile'
+            notAvailable: 'Non disponibile',
+            addReminder: 'Aggiungi Promemoria',
+            removeReminder: 'Rimuovi Promemoria'
         },
         common: {
             loading: 'Caricamento...',
             error: 'Si è verificato un errore',
-            close: 'Chiudi'
+            close: 'Chiudi',
+            save: 'Salva',
+            cancel: 'Annulla'
         }
     },
     en: {
@@ -78,9 +104,10 @@ const translations = {
             library: 'Library',
             wishlist: 'Wishlist',
             diary: 'Game Diary',
-            upcoming: 'Upcoming',
+            upcoming: 'Most Anticipated',
             calendar: 'Calendar',
-            news: 'News'
+            news: 'News',
+            reminders: 'Reminders'
         },
         search: {
             placeholder: 'Search for a game...',
@@ -104,15 +131,22 @@ const translations = {
             empty: 'No diary entries',
             emptyDesc: 'Start documenting your gaming sessions!',
             addEntry: 'Add Entry',
+            editEntry: 'Edit Entry',
             selectGame: 'Select a game',
             titlePlaceholder: 'Session title',
             contentPlaceholder: 'Tell us about your experience...',
             save: 'Save Entry',
-            addButton: '+ Add Entry'
+            addButton: '+ Add Entry',
+            rating: 'Rating',
+            photos: 'Photos',
+            edit: 'Edit',
+            delete: 'Delete',
+            confirmDelete: 'Are you sure you want to delete this entry?'
         },
         upcoming: {
-            title: 'Upcoming Games',
-            mostAnticipated: 'Most Anticipated'
+            title: 'Most Anticipated Games',
+            mostAnticipated: 'Most Anticipated',
+            hype: 'Hype'
         },
         calendar: {
             title: 'Release Calendar',
@@ -120,11 +154,25 @@ const translations = {
                      'July', 'August', 'September', 'October', 'November', 'December'],
             days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
             prev: '← Previous',
-            next: 'Next →'
+            next: 'Next →',
+            gamesOnDay: 'releases',
+            viewAll: 'View all'
         },
         news: {
             title: 'Latest News',
-            readMore: 'Read more'
+            readMore: 'Read more',
+            source: 'Source'
+        },
+        reminders: {
+            title: 'My Reminders',
+            empty: 'No reminders',
+            emptyDesc: 'Add reminders from game details!',
+            daysLeft: 'days',
+            today: 'Releases today!',
+            tomorrow: 'Releases tomorrow!',
+            remove: 'Remove',
+            addReminder: 'Add Reminder',
+            removeReminder: 'Remove Reminder'
         },
         gameDetail: {
             addToLibrary: 'Add to Library',
@@ -138,12 +186,16 @@ const translations = {
             rating: 'Rating',
             description: 'Description',
             yourRating: 'Your Rating',
-            notAvailable: 'Not available'
+            notAvailable: 'Not available',
+            addReminder: 'Add Reminder',
+            removeReminder: 'Remove Reminder'
         },
         common: {
             loading: 'Loading...',
             error: 'An error occurred',
-            close: 'Close'
+            close: 'Close',
+            save: 'Save',
+            cancel: 'Cancel'
         }
     }
 };
@@ -155,7 +207,6 @@ class I18n {
     }
     
     init() {
-        // Imposta lingua attiva nei pulsanti
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
             btn.addEventListener('click', () => this.setLanguage(btn.dataset.lang));
@@ -174,7 +225,6 @@ class I18n {
         
         this.translate();
         
-        // Ricarica la pagina corrente per aggiornare i contenuti dinamici
         const currentPage = document.querySelector('.nav-link.active')?.dataset.page || 'library';
         if (window.app) {
             window.app.loadPage(currentPage);
@@ -182,7 +232,6 @@ class I18n {
     }
     
     translate() {
-        // Traduci elementi con data-i18n
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.dataset.i18n;
             const translation = this.get(key);
@@ -191,7 +240,6 @@ class I18n {
             }
         });
         
-        // Traduci placeholder
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
             const key = element.dataset.i18nPlaceholder;
             const translation = this.get(key);
@@ -217,5 +265,4 @@ class I18n {
     }
 }
 
-// Inizializza i18n globalmente
 window.i18n = new I18n();
